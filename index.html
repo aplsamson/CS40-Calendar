@@ -327,7 +327,6 @@
             align-items: center;
         }
 
-        /* SCROLLING FIX HERE */
         .modal-content {
             background: white;
             padding: 25px;
@@ -336,8 +335,6 @@
             max-width: 90%;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
-            
-            /* Enable Scrolling if Content is Tall */
             max-height: 85vh; 
             overflow-y: auto; 
         }
@@ -379,12 +376,11 @@
         .day-view-date { font-size: 1.8rem; font-weight: bold; color: #333; }
         .day-view-type { font-size: 1.2rem; color: #003087; font-weight: bold; margin-top: 5px; }
         
+        /* SCROLL BAR FIX: Removed max-height/overflow from here */
         .day-view-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 400px;
-            overflow-y: auto;
             margin-bottom: 20px; 
         }
 
@@ -516,7 +512,7 @@
 
             <div class="form-group">
                 <label>Event Name</label>
-                <input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Brief">
+                <input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Briefs">
             </div>
 
             <div class="form-group">
@@ -907,11 +903,13 @@
                 dayViewToggles.style.display = 'flex';
                 
                 noSchoolCheck.checked = isNoSchoolDay(dateKey);
+                // Check if SSOC event exists
                 const existingSSOC = events.find(e => e.date === dateKey && e.name === "Special Schedule of Calls");
                 ssocCheck.checked = !!existingSSOC;
                 
                 dayViewAddBtn.onclick = () => { dayViewModal.style.display = 'none'; openAddModal(dateKey); };
                 
+                // NO SCHOOL Logic
                 noSchoolCheck.onclick = () => {
                     const isNS = noSchoolCheck.checked;
                     if(isNS) {
@@ -923,6 +921,7 @@
                     renderCalendar(); 
                 };
 
+                // SSOC Logic
                 ssocCheck.onclick = () => {
                     if (ssocCheck.checked) {
                         const newEvent = {
@@ -966,6 +965,7 @@
                     let attendanceStr;
                     if (evt.classes.length === 0 || evt.classes.length === 4) { attendanceStr = 'All'; } else { attendanceStr = evt.classes.join(', '); }
                     
+                    // Time Logic
                     let timeDisplay = "";
                     if (evt.startTime && evt.endTime) { 
                         timeDisplay = `${evt.startTime} - ${evt.endTime}`; 
