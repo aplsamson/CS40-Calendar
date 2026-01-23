@@ -243,20 +243,23 @@
             pointer-events: none;
         }
 
+        /* INCREASED PADDING HERE */
         .day-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding-top: 25px; 
+            padding-top: 30px; 
             height: 100%;
         }
 
+        /* INCREASED PADDING/MARGIN HERE */
         .day-section {
             flex: 1; 
             border-bottom: 1px dotted #999;
             width: 100%;
             font-size: 0.75rem;
-            padding: 1px 2px;
+            padding: 4px 2px;
+            margin-bottom: 4px;
             overflow: hidden;
             position: relative; 
         }
@@ -276,12 +279,13 @@
             text-transform: uppercase;
         }
 
+        /* INCREASED MARGIN HERE */
         .event-chip {
             display: block;
             color: white;
             padding: 2px 4px;
             border-radius: 3px;
-            margin-bottom: 2px; 
+            margin-bottom: 4px; 
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -458,12 +462,12 @@
             background-color: #003087;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 4px;
             font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 5px;
+            margin-bottom: 10px; /* Space below the button */
             width: 100%;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -585,13 +589,13 @@
                 </div>
                 
                 <div class="day-view-edit-controls" id="dayViewEditControls">
+                    <button id="dayViewAddBtn" class="day-view-add-btn-rect">+ Add Event</button>
                     <label class="toggle-item label-ssoc">
                         <input type="checkbox" id="ssocCheck"> SSoC
                     </label>
                     <label class="toggle-item label-noschool">
                         <input type="checkbox" id="noSchoolCheck"> No School
                     </label>
-                    <button id="dayViewAddBtn" class="day-view-add-btn-rect">+ Add Event</button>
                 </div>
             </div>
             
