@@ -23,18 +23,17 @@
         .header-actions-right { 
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
             display: flex; 
-            flex-direction: row; /* Horizontal layout: Filter | Stack */
-            align-items: center; /* Center filter button relative to stack */
+            flex-direction: row; 
+            align-items: center; 
             gap: 12px; 
             z-index: 20; 
         }
 
-        /* NEW STACK FOR EDIT/ADD BUTTONS */
         .action-buttons-stack {
             display: flex;
             flex-direction: column;
             gap: 5px;
-            align-items: flex-end; /* Right align buttons */
+            align-items: flex-end; 
         }
         
         .clean-mode-legend { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: none; background: white; padding: 15px 20px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); gap: 8px; flex-direction: column; align-items: flex-start; z-index: 20; min-width: 120px; }
@@ -477,7 +476,14 @@
             filteredEvents.forEach(evt => {
                 let targetId;
                 const isNoSchool = isWeekendOrNoSchool(evt.date);
-                if (isNoSchool) { targetId = `cell-${evt.date}-weekend`; } else { targetId = `cell-${evt.date}-${evt.period}`; }
+                // FORCE SSoC to Top
+                if (evt.name === "Special Schedule of Calls") {
+                    if (isNoSchool) targetId = `cell-${evt.date}-weekend`;
+                    else targetId = `cell-${evt.date}-preflight`; 
+                } else {
+                    if (isNoSchool) { targetId = `cell-${evt.date}-weekend`; } 
+                    else { targetId = `cell-${evt.date}-${evt.period}`; }
+                }
                 if (!eventsByTarget[targetId]) eventsByTarget[targetId] = [];
                 eventsByTarget[targetId].push(evt);
             });
@@ -487,6 +493,15 @@
                 if (!targetEl) return;
                 const evts = eventsByTarget[targetId];
                 
+                // SORTING LOGIC
+                evts.sort((a, b) => {
+                    if (a.name === "Special Schedule of Calls") return -1;
+                    if (b.name === "Special Schedule of Calls") return 1;
+                    const tA = a.startTime || "99:99";
+                    const tB = b.startTime || "99:99";
+                    return tA.localeCompare(tB);
+                });
+
                 if (currentView === 'month' && evts.length > 2) {
                     const chip = createEventChip(evts[0]);
                     targetEl.appendChild(chip);
@@ -610,8 +625,14 @@
             const dayEvents = getFilteredEvents().filter(e => e.date === dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
 
-            if (isNoSchool) dayEvents.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
-            else { const pO = { 'preflight': 1, 'morning': 2, 'm5': 3, 'other': 4 }; dayEvents.sort((a, b) => pO[a.period] - pO[b.period]); }
+            // SAME SORTING LOGIC FOR DAY VIEW
+            dayEvents.sort((a, b) => {
+                if (a.name === "Special Schedule of Calls") return -1;
+                if (b.name === "Special Schedule of Calls") return 1;
+                const tA = a.startTime || "99:99";
+                const tB = b.startTime || "99:99";
+                return tA.localeCompare(tB);
+            });
 
             if (dayEvents.length === 0) els.dayViewList.innerHTML = "<p style='color:#777; font-style:italic;'>No events.</p>";
             else {
@@ -622,9 +643,7 @@
                     let timeDisplay = evt.startTime ? (evt.startTime + (evt.endTime ? ` - ${evt.endTime}` : '')) : (periodNames[evt.period] || 'Other');
                     let locationHtml = evt.location ? `<p><strong>Location:</strong> ${evt.location}</p>` : "";
                     
-                    // REMOVED (Mandatory) Text from display
                     let leftCol = `<div class="day-view-info"><h4>${evt.name}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
-                    
                     if (isEditMode) leftCol += `<button class="action-btn-sm edit-btn" style="display:inline-block;">Edit</button><button class="action-btn-sm delete-btn" style="display:inline-block;">Delete</button>`;
                     leftCol += `</div>`;
                     let rightCol = (evt.notes && evt.notes.trim()) ? `<div class="day-view-notes"><strong>Notes:</strong>${evt.notes}</div>` : "";
