@@ -4,484 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CS40 Calendar</title>
-    
     <link rel="icon" href="https://www.aviatorgear.com/images/product/large/39950.jpg" type="image/jpeg">
     
     <style>
-        /* --- GLOBAL SCALING FIX --- */
         html { font-size: 14px; }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            background-color: #f4f4f9;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center; 
-            overflow-x: hidden; 
-            width: 100%;
-        }
-
-        /* --- TOP CONTAINER --- */
-        .top-container {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 1400px; 
-            margin-bottom: 30px;
-            min-height: 110px; 
-        }
-
-        .main-header {
-            display: flex;
-            align-items: center;
-            background-color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            z-index: 10;
-            transition: opacity 0.3s;
-        }
-
-        .header-logo {
-            height: 5rem; 
-            width: auto;
-            margin-right: 20px;
-            cursor: pointer;
-        }
-
-        .header-title {
-            font-size: 2.5rem;
-            color: #333;
-            font-weight: bold;
-            margin: 0;
-            white-space: nowrap;
-        }
-
-        /* --- HEADER ACTIONS --- */
-        .header-actions-left {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-            z-index: 20;
-            transition: opacity 0.3s;
-        }
-
-        .header-actions-right {
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%); 
-            display: flex;
-            flex-direction: column; 
-            align-items: flex-end;
-            gap: 10px;
-            z-index: 20;
-            transition: opacity 0.3s;
-        }
-
-        /* --- CLEAN MODE LEGEND --- */
-        .clean-mode-legend {
-            position: absolute;
-            right: 0; 
-            top: 50%;
-            transform: translateY(-50%);
-            display: none; 
-            background: white;
-            padding: 15px 20px;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            gap: 8px; 
-            flex-direction: column; 
-            align-items: flex-start;
-            z-index: 20;
-            min-width: 120px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; width: 100%; }
         
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #555;
-            width: 100%;
-        }
+        .top-container { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; max-width: 1400px; margin-bottom: 30px; min-height: 110px; }
+        .main-header { display: flex; align-items: center; background-color: white; padding: 15px 30px; border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10; }
+        .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
+        .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
+        .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
+        .header-actions-right { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 20; }
+        
+        .clean-mode-legend { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: none; background: white; padding: 15px 20px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); gap: 8px; flex-direction: column; align-items: flex-start; z-index: 20; min-width: 120px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: bold; color: #555; width: 100%; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 
-        .header-btn {
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: background 0.2s, transform 0.1s;
-            white-space: nowrap;
-            width: 160px; 
-            text-align: center;
-        }
+        .header-btn { border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background 0.2s, transform 0.1s; white-space: nowrap; width: 160px; text-align: center; }
         .header-btn:active { transform: scale(0.98); }
-
         .week-view-btn { background-color: #003087; color: white; }
         .week-view-btn:hover { background-color: #001e54; }
-
         .add-event-btn-main { background-color: #003087; color: white; display: none; }
         .add-event-btn-main:hover { background-color: #001e54; }
-
         .edit-mode-btn { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
         .edit-mode-btn:hover { background-color: #e0e0e0; }
         .edit-mode-btn.active { background-color: #d9534f; color: white; border: none; box-shadow: 0 2px 5px rgba(217, 83, 79, 0.4); }
-        .edit-mode-btn.active:hover { background-color: #c9302c; }
-
-        /* --- CALENDAR --- */
-        .calendar-container {
-            width: 100%;
-            max-width: 1400px; 
-            background: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
-            border-top: 2px solid black;
-            border-left: 2px solid black;
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background-color: #003087;
-            color: white;
-            border-right: 2px solid black;
-            border-bottom: 2px solid black;
-            transition: height 0.3s, padding 0.3s, opacity 0.3s;
-        }
+        
+        .calendar-container { width: 100%; max-width: 1400px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; border-top: 2px solid black; border-left: 2px solid black; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #003087; color: white; border-right: 2px solid black; border-bottom: 2px solid black; }
         .calendar-header.hidden { display: none; }
-
-        .nav-btn {
-            background: none;
-            border: 1px solid white;
-            color: white;
-            padding: 5px 15px;
-            cursor: pointer;
-            font-size: 1.2rem;
-            border-radius: 4px;
-        }
+        .nav-btn { background: none; border: 1px solid white; color: white; padding: 5px 15px; cursor: pointer; font-size: 1.2rem; border-radius: 4px; }
         .nav-btn:hover { background: rgba(255,255,255,0.2); }
 
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            width: 100%;
-        }
-
-        .grid-header-cell {
-            text-align: center;
-            padding: 10px;
-            background-color: #e0e0e0;
-            font-weight: bold;
-            border-right: 2px solid black;
-            border-bottom: 2px solid black;
-            color: #333;
-        }
-
-        .day-cell {
-            height: 240px; 
-            overflow: hidden;
-            border-right: 2px solid black;
-            border-bottom: 2px solid black;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            background-color: white;
-            cursor: pointer; 
-            transition: background-color 0.1s;
-        }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
+        .grid-header-cell { text-align: center; padding: 10px; background-color: #e0e0e0; font-weight: bold; border-right: 2px solid black; border-bottom: 2px solid black; color: #333; }
+        
+        .day-cell { height: 240px; overflow: hidden; border-right: 2px solid black; border-bottom: 2px solid black; position: relative; display: flex; flex-direction: column; background-color: white; cursor: pointer; transition: background-color 0.1s; }
         .day-cell:hover { background-color: #f0f8ff; }
-        
-        /* WEEK VIEW DYNAMIC HEIGHT */
-        .day-cell.week-view {
-            height: auto !important; /* Force auto height */
-            min-height: 500px; 
-        }
-
-        .date-number {
-            position: absolute;
-            top: 5px;
-            left: 8px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #333;
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .day-type {
-            position: absolute;
-            top: 5px;
-            width: 100%;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.95rem;
-            color: #003087;
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .day-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding-top: 25px; 
-            height: 100%;
-        }
-
-        .day-section {
-            flex: 1; 
-            border-bottom: 1px dotted #999;
-            width: 100%;
-            font-size: 0.75rem;
-            padding: 3px 2px; /* UPDATED to 3px */
-            overflow: hidden;
-            position: relative; 
-        }
-        
-        /* WEEK VIEW SECTION DYNAMIC BEHAVIOR */
-        .day-cell.week-view .day-section {
-            height: auto;
-            flex: 1 0 auto; /* Grow: 1, Shrink: 0, Basis: Auto (Prevents Cutoff) */
-            min-height: 80px;
-        }
-        
-        .day-section:last-child { border-bottom: none; }
-
-        .day-section::after {
-            content: attr(data-label);
-            position: absolute;
-            bottom: 2px;
-            right: 4px;
-            font-size: 0.65rem;
-            color: #999;
-            pointer-events: none;
-            opacity: 0.7;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .event-chip {
-            display: block;
-            color: white;
-            padding: 2px 4px;
-            border-radius: 3px;
-            margin-bottom: 2px; 
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 0.75rem;
-            pointer-events: none; 
-            z-index: 5;
-            position: relative;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-        }
-        
-        .day-cell.week-view .event-chip {
-            font-size: 0.9rem; 
-            padding: 6px 8px;  
-            white-space: normal; 
-            line-height: 1.3;
-            margin-bottom: 4px;
-            display: flex;
-            flex-direction: column; 
-        }
-        
-        .more-events-indicator {
-            font-size: 1.2rem;
-            line-height: 0.5;
-            color: #333;
-            text-align: center;
-            font-weight: bold;
-            padding-bottom: 2px;
-        }
-
+        .day-cell.week-view { height: auto !important; min-height: 500px; }
         .day-cell.inactive { background-color: #eee; cursor: default; }
 
-        /* --- MODAL --- */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-        }
+        .date-number { position: absolute; top: 5px; left: 8px; font-weight: bold; font-size: 1.1rem; color: #333; z-index: 2; pointer-events: none; }
+        .day-type { position: absolute; top: 5px; width: 100%; text-align: center; font-weight: bold; font-size: 0.95rem; color: #003087; z-index: 2; pointer-events: none; }
+        
+        .day-content { flex: 1; display: flex; flex-direction: column; padding-top: 25px; height: 100%; }
+        .day-section { flex: 1; border-bottom: 1px dotted #999; width: 100%; font-size: 0.75rem; padding: 1px 2px; overflow: hidden; position: relative; }
+        .day-cell.week-view .day-section { height: auto; flex: 1 0 auto; min-height: 80px; }
+        .day-section:last-child { border-bottom: none; }
+        .day-section::after { content: attr(data-label); position: absolute; bottom: 2px; right: 4px; font-size: 0.65rem; color: #999; pointer-events: none; opacity: 0.7; font-weight: bold; text-transform: uppercase; }
 
-        .modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            width: 550px; 
-            max-width: 90%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            position: relative;
-            max-height: 85vh; 
-            overflow-y: auto; 
-        }
+        .event-chip { display: block; color: white; padding: 2px 4px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; pointer-events: none; z-index: 5; position: relative; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+        .day-cell.week-view .event-chip { font-size: 0.9rem; padding: 6px 8px; white-space: normal; line-height: 1.3; margin-bottom: 4px; display: flex; flex-direction: column; }
+        .more-events-indicator { font-size: 1.2rem; line-height: 0.5; color: #333; text-align: center; font-weight: bold; padding-bottom: 2px; }
 
-        .close-modal-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-            z-index: 10;
-        }
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 550px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; max-height: 85vh; overflow-y: auto; }
+        .close-modal-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; z-index: 10; }
         .modal-title { margin-bottom: 20px; font-size: 1.5rem; color: #333; }
-
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
         .form-control { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        textarea.form-control { resize: vertical; min-height: 60px; }
-        
         .time-inputs { display: flex; gap: 10px; }
         .time-inputs input { flex: 1; }
-
         .checkbox-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        .checkbox-all { border-right: 1px solid #ccc; padding-right: 15px; margin-right: 5px; }
-
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         .btn-cancel { background: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-save { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 
-        /* DAY VIEW POPUP STYLES */
-        .day-view-header {
-            border-bottom: 2px solid #003087;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        
-        .header-text-group {
-            display: flex;
-            flex-direction: column;
-        }
-
+        /* DAY DETAIL */
+        .day-view-header { border-bottom: 2px solid #003087; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .header-text-group { display: flex; flex-direction: column; }
         .day-view-date { font-size: 1.8rem; font-weight: bold; color: #333; }
         .day-view-type { font-size: 1.2rem; color: #003087; font-weight: bold; margin-top: 5px; }
-        
-        .day-view-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px; 
-        }
-
-        .day-view-item {
-            background: #f4f4f9;
-            padding: 15px;
-            border-left: 4px solid #003087;
-            border-radius: 4px;
-            display: flex; 
-            gap: 20px;
-        }
-        
+        .day-view-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .day-view-item { background: #f4f4f9; padding: 15px; border-left: 4px solid #003087; border-radius: 4px; display: flex; gap: 20px; }
         .day-view-info { flex: 1; }
-        .day-view-notes {
-            flex: 1;
-            border-left: 1px solid #ddd;
-            padding-left: 15px;
-            color: #555;
-            font-size: 0.9rem;
-            white-space: pre-wrap; 
-        }
+        .day-view-notes { flex: 1; border-left: 1px solid #ddd; padding-left: 15px; color: #555; font-size: 0.9rem; white-space: pre-wrap; }
         .day-view-notes strong { display: block; margin-bottom: 5px; color: #333; }
-
         .day-view-item h4 { margin: 0 0 5px 0; font-size: 1.2rem; color: #003087; }
         .day-view-item p { margin: 0 0 3px 0; font-size: 0.9rem; color: #666; }
-        
-        .action-btn-sm {
-            border: none;
-            padding: 8px 12px;
-            font-size: 0.85rem;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-            display: none; 
-            margin-right: 5px;
-        }
+        .action-btn-sm { border: none; padding: 8px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; margin-top: 10px; display: none; margin-right: 5px; }
         .edit-btn { background-color: #f0ad4e; color: white; }
         .delete-btn { background-color: #ff4d4f; color: white; }
 
-        /* Updated Edit Controls Container */
-        .day-view-edit-controls {
-            display: none; /* Managed by JS */
-            flex-direction: column;
-            gap: 5px; 
-            align-items: flex-start; /* Left Align elements */
-            margin-right: 35px; /* Space from close 'X' */
-        }
-
-        .toggle-item {
-            font-weight: bold;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-        
+        /* EDIT CONTROLS */
+        .day-view-edit-controls { display: none; flex-direction: column; gap: 5px; align-items: flex-start; margin-right: 35px; }
+        .toggle-item { font-weight: bold; color: #333; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.95rem; }
         .label-ssoc { color: #003087; }
         .label-noschool { color: #d9534f; }
-
         .toggle-item input { transform: scale(1.2); cursor: pointer; }
-
-        /* Rectangular Add Button */
-        .day-view-add-btn-rect {
-            background-color: #003087;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 10px; 
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: background 0.2s;
-        }
+        .day-view-add-btn-rect { background-color: #003087; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 0.9rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; width: 100%; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: background 0.2s; }
         .day-view-add-btn-rect:hover { background-color: #001e54; }
         
         .force-hide { display: none !important; }
@@ -491,9 +108,7 @@
 <body>
 
     <div class="top-container">
-        <div class="header-actions-left" id="headerActionsLeft">
-            <button id="weekViewBtn" class="header-btn week-view-btn">Week View</button>
-        </div>
+        <div class="header-actions-left" id="headerActionsLeft"><button id="weekViewBtn" class="header-btn week-view-btn">Week View</button></div>
         <div class="main-header">
             <img src="https://www.aviatorgear.com/images/product/large/39950.jpg" alt="CS40 Logo" class="header-logo" id="mainHeaderLogo" title="Double Click to Toggle Clean Mode">
             <h1 class="header-title" id="mainHeaderTitle">CS40 Calendar</h1>
@@ -513,9 +128,7 @@
 
     <div class="calendar-container">
         <header class="calendar-header" id="calendarNavHeader">
-            <button id="prevBtn" class="nav-btn">&lt;</button>
-            <h2 id="monthYear">Month Year</h2>
-            <button id="nextBtn" class="nav-btn">&gt;</button>
+            <button id="prevBtn" class="nav-btn">&lt;</button> <h2 id="monthYear">Month Year</h2> <button id="nextBtn" class="nav-btn">&gt;</button>
         </header>
         <div class="calendar-grid" id="calendarGrid"></div>
     </div>
@@ -523,151 +136,105 @@
     <div id="eventModal" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title" id="modalTitle">Add Event</h3>
-            
-            <div class="form-group">
-                <label>Date</label>
-                <input type="date" id="eventDate" class="form-control">
-            </div>
-
-            <div class="form-group">
-                <label>Event Name</label>
-                <input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Briefs">
-            </div>
-
-            <div class="form-group">
-                <label>Location (Optional)</label>
-                <input type="text" id="eventLocation" class="form-control" placeholder="e.g. SAR">
-            </div>
-
-            <div class="form-group" id="periodGroup">
-                <label>Period</label>
-                <select id="eventPeriod" class="form-control">
-                    <option value="preflight">Preflight</option>
-                    <option value="morning">Morning Period</option>
-                    <option value="m5" id="opt-m5">M5</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-
-            <div class="form-group" id="customTimeCheckContainer">
-                <label style="font-weight: normal; cursor:pointer;">
-                    <input type="checkbox" id="customTimeCheck"> Enable Custom Time
-                </label>
-            </div>
-
-            <div class="form-group" id="timeframeGroup" style="display:none;">
-                <label>Timeframe</label>
-                <div class="time-inputs">
-                    <input type="time" id="startTime" class="form-control">
-                    <span style="align-self:center;">to</span>
-                    <input type="time" id="endTime" class="form-control">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Class Attendance</label>
-                <div class="checkbox-group">
-                    <label class="checkbox-all"><input type="checkbox" id="allClassesCheck"> All</label>
-                    <label><input type="checkbox" value="26" class="class-check"> 26</label>
-                    <label><input type="checkbox" value="27" class="class-check"> 27</label>
-                    <label><input type="checkbox" value="28" class="class-check"> 28</label>
-                    <label><input type="checkbox" value="29" class="class-check"> 29</label>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Notes</label>
-                <textarea id="eventNotes" class="form-control" placeholder="Optional details..."></textarea>
-            </div>
-
-            <div class="modal-actions">
-                <button id="cancelBtn" class="btn-cancel">Cancel</button>
-                <button id="saveEventBtn" class="btn-save">Save</button>
-            </div>
+            <div class="form-group"><label>Date</label><input type="date" id="eventDate" class="form-control"></div>
+            <div class="form-group"><label>Event Name</label><input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Briefs"></div>
+            <div class="form-group"><label>Location (Optional)</label><input type="text" id="eventLocation" class="form-control" placeholder="e.g. SAR"></div>
+            <div class="form-group" id="periodGroup"><label>Period</label><select id="eventPeriod" class="form-control"><option value="preflight">Preflight</option><option value="morning">Morning Period</option><option value="m5" id="opt-m5">M5</option><option value="other">Other</option></select></div>
+            <div class="form-group" id="customTimeCheckContainer"><label style="font-weight: normal; cursor:pointer;"><input type="checkbox" id="customTimeCheck"> Enable Custom Time</label></div>
+            <div class="form-group" id="timeframeGroup" style="display:none;"><label>Timeframe</label><div class="time-inputs"><input type="time" id="startTime" class="form-control"><span style="align-self:center;">to</span><input type="time" id="endTime" class="form-control"></div></div>
+            <div class="form-group"><label>Class Attendance</label><div class="checkbox-group"><label class="checkbox-all"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
+            <div class="form-group"><label>Notes</label><textarea id="eventNotes" class="form-control" placeholder="Optional details..."></textarea></div>
+            <div class="modal-actions"><button id="cancelBtn" class="btn-cancel">Cancel</button><button id="saveEventBtn" class="btn-save">Save</button></div>
         </div>
     </div>
 
     <div id="dayViewModal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal-btn" id="closeDayView">&times;</button>
-            
             <div class="day-view-header">
-                <div class="header-text-group">
-                    <div class="day-view-date" id="dayViewDateDisplay">January 1, 2026</div>
-                    <div class="day-view-type" id="dayViewTypeDisplay">M1</div>
-                </div>
-                
+                <div class="header-text-group"><div class="day-view-date" id="dayViewDateDisplay">Date</div><div class="day-view-type" id="dayViewTypeDisplay">M1</div></div>
                 <div class="day-view-edit-controls" id="dayViewEditControls">
                     <button id="dayViewAddBtn" class="day-view-add-btn-rect">+ Add Event</button>
-                    <label class="toggle-item label-ssoc">
-                        <input type="checkbox" id="ssocCheck"> SSoC
-                    </label>
-                    <label class="toggle-item label-noschool">
-                        <input type="checkbox" id="noSchoolCheck"> No School
-                    </label>
+                    <label class="toggle-item label-ssoc"><input type="checkbox" id="ssocCheck"> SSoC</label>
+                    <label class="toggle-item label-noschool"><input type="checkbox" id="noSchoolCheck"> No School</label>
                 </div>
             </div>
-            
             <div id="dayViewList" class="day-view-list"></div>
         </div>
     </div>
 
     <script src="schedule-data.js"></script>
 
-    <script>
-        const monthYearElement = document.getElementById('monthYear');
-        const calendarGrid = document.getElementById('calendarGrid');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const weekViewBtn = document.getElementById('weekViewBtn');
-        const mainHeaderTitle = document.getElementById('mainHeaderTitle');
-        const mainHeaderLogo = document.getElementById('mainHeaderLogo');
-        const headerActionsLeft = document.getElementById('headerActionsLeft');
-        const headerActionsRight = document.getElementById('headerActionsRight');
-        const calendarNavHeader = document.getElementById('calendarNavHeader');
-        const cleanModeLegend = document.getElementById('cleanModeLegend');
-        
-        const addEventBtn = document.getElementById('addEventBtn');
-        const editModeBtn = document.getElementById('editModeBtn');
-        
-        const eventModal = document.getElementById('eventModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const saveEventBtn = document.getElementById('saveEventBtn');
-        const eventDateInput = document.getElementById('eventDate');
-        const eventNameInput = document.getElementById('eventName');
-        const eventLocationInput = document.getElementById('eventLocation');
-        const eventPeriodSelect = document.getElementById('eventPeriod');
-        const eventNotesInput = document.getElementById('eventNotes');
-        const optionM5 = document.getElementById('opt-m5');
-        const periodGroup = document.getElementById('periodGroup');
-        const timeframeGroup = document.getElementById('timeframeGroup');
-        const startTimeInput = document.getElementById('startTime');
-        const endTimeInput = document.getElementById('endTime');
-        const customTimeCheck = document.getElementById('customTimeCheck');
-        const customTimeCheckContainer = document.getElementById('customTimeCheckContainer');
-        const allClassesCheck = document.getElementById('allClassesCheck');
-        const classChecks = document.querySelectorAll('.class-check');
-        
-        const dayViewModal = document.getElementById('dayViewModal');
-        const closeDayViewBtn = document.getElementById('closeDayView');
-        const dayViewDateDisplay = document.getElementById('dayViewDateDisplay');
-        const dayViewTypeDisplay = document.getElementById('dayViewTypeDisplay');
-        const dayViewList = document.getElementById('dayViewList');
-        const dayViewAddBtn = document.getElementById('dayViewAddBtn');
-        
-        const dayViewEditControls = document.getElementById('dayViewEditControls');
-        const ssocCheck = document.getElementById('ssocCheck');
-        const noSchoolCheck = document.getElementById('noSchoolCheck');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyoUxG8Qfc6g5kwgqRK0Q2J0k1tXtQeVs",
+            authDomain: "cs40-calendar.firebaseapp.com",
+            projectId: "cs40-calendar",
+            storageBucket: "cs40-calendar.firebasestorage.app",
+            messagingSenderId: "661443751516",
+            appId: "1:661443751516:web:ddee708ab5a1014cadc099"
+  };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Global Variables
         let currentDate = new Date();
-        let events = JSON.parse(localStorage.getItem('cs40_events')) || [];
-        let noSchoolDays = JSON.parse(localStorage.getItem('cs40_noschool_days')) || [];
+        let events = [];
+        let noSchoolDays = [];
         const PIN_CODE = "2640";
         let isEditMode = false;
         let currentDayViewKey = null; 
         let currentView = 'month';
         let editingEventId = null;
+        let editingDocId = null; // Store Firestore Document ID
+
+        // --- DOM Elements ---
+        // (Getting all elements by ID)
+        const els = {};
+        ['monthYear','calendarGrid','prevBtn','nextBtn','weekViewBtn','mainHeaderTitle','mainHeaderLogo',
+         'headerActionsLeft','headerActionsRight','calendarNavHeader','cleanModeLegend','addEventBtn','editModeBtn',
+         'eventModal','modalTitle','cancelBtn','saveEventBtn','eventDate','eventName','eventLocation',
+         'eventPeriod','eventNotes','opt-m5','periodGroup','timeframeGroup','startTime','endTime',
+         'customTimeCheck','customTimeCheckContainer','allClassesCheck','dayViewModal','closeDayView',
+         'dayViewDateDisplay','dayViewTypeDisplay','dayViewList','dayViewAddBtn','dayViewEditControls',
+         'ssocCheck','noSchoolCheck'
+        ].forEach(id => els[id] = document.getElementById(id));
+        
+        const classChecks = document.querySelectorAll('.class-check');
+
+        // --- FIREBASE FUNCTIONS ---
+
+        async function loadData() {
+            try {
+                // Fetch Events
+                const eventsSnapshot = await getDocs(collection(db, "events"));
+                events = [];
+                eventsSnapshot.forEach((doc) => {
+                    events.push({ ...doc.data(), id: doc.id }); // Use doc.id as the event ID
+                });
+
+                // Fetch No School Days
+                const noSchoolSnapshot = await getDocs(collection(db, "noSchoolDays"));
+                noSchoolDays = [];
+                noSchoolSnapshot.forEach((doc) => {
+                    // We store the date string as the document ID for noSchoolDays
+                    noSchoolDays.push(doc.id); 
+                });
+
+                renderCalendar();
+            } catch (e) {
+                console.error("Error loading data: ", e);
+                alert("Error loading calendar data. Check console.");
+            }
+        }
+
+        // --- CALENDAR LOGIC ---
 
         function getFormattedDate(dateObj) {
             const y = dateObj.getFullYear();
@@ -683,14 +250,10 @@
             return "";
         }
         
-        function isNoSchoolDay(dateStr) {
-            return noSchoolDays.includes(dateStr);
-        }
-        
+        function isNoSchoolDay(dateStr) { return noSchoolDays.includes(dateStr); }
         function isWeekendOrNoSchool(dateStr) {
             const d = new Date(dateStr + 'T12:00:00');
-            const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
-            return isWeekend || isNoSchoolDay(dateStr);
+            return (d.getDay() === 0 || d.getDay() === 6) || isNoSchoolDay(dateStr);
         }
 
         function getChipBackground(classes) {
@@ -709,62 +272,40 @@
             return `linear-gradient(to right, ${gradientParts.join(', ')})`;
         }
 
-        mainHeaderLogo.addEventListener('dblclick', () => {
-            headerActionsLeft.classList.toggle('force-hide');
-            headerActionsRight.classList.toggle('force-hide');
-            calendarNavHeader.classList.toggle('hidden');
-            if (headerActionsRight.classList.contains('force-hide')) {
-                cleanModeLegend.classList.add('force-show-flex');
-            } else {
-                cleanModeLegend.classList.remove('force-show-flex');
-            }
-        });
-
-        weekViewBtn.addEventListener('click', () => {
-            if (currentView === 'month') {
-                currentView = 'week';
-                weekViewBtn.innerText = "Month View";
-            } else {
-                currentView = 'month';
-                weekViewBtn.innerText = "Week View";
-            }
-            renderCalendar();
-        });
+        // --- RENDERERS ---
 
         function renderCalendar() {
             if (currentView === 'month') { renderMonthView(); } else { renderWeekView(); }
         }
 
         function renderMonthView() {
-            mainHeaderTitle.innerText = "CS40 Calendar";
+            els.mainHeaderTitle.innerText = "CS40 Calendar";
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            monthYearElement.innerText = `${monthNames[month]} ${year}`;
-            calendarGrid.innerHTML = "";
-            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            dayNames.forEach(day => {
-                const headerCell = document.createElement('div');
-                headerCell.className = 'grid-header-cell';
-                headerCell.innerText = day;
-                calendarGrid.appendChild(headerCell);
+            els.monthYear.innerText = `${monthNames[month]} ${year}`;
+            els.calendarGrid.innerHTML = "";
+            
+            ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(day => {
+                const headerCell = document.createElement('div'); headerCell.className = 'grid-header-cell'; headerCell.innerText = day;
+                els.calendarGrid.appendChild(headerCell);
             });
+
             const firstDayIndex = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const prevLastDay = new Date(year, month, 0).getDate();
+
             for (let x = firstDayIndex; x > 0; x--) {
-                const dayCell = document.createElement('div');
-                dayCell.classList.add('day-cell', 'inactive');
+                const dayCell = document.createElement('div'); dayCell.className = 'day-cell inactive';
                 dayCell.innerHTML = `<span class="date-number">${prevLastDay - x + 1}</span>`;
-                calendarGrid.appendChild(dayCell);
+                els.calendarGrid.appendChild(dayCell);
             }
+
             for (let i = 1; i <= daysInMonth; i++) {
-                const dayCell = document.createElement('div');
-                dayCell.classList.add('day-cell');
-                const cellDateObj = new Date(year, month, i);
-                const dateKey = getFormattedDate(cellDateObj);
+                const dayCell = document.createElement('div'); dayCell.className = 'day-cell';
+                const dateKey = getFormattedDate(new Date(year, month, i));
                 buildDayCellContent(dayCell, dateKey, i);
-                calendarGrid.appendChild(dayCell);
+                els.calendarGrid.appendChild(dayCell);
             }
             renderEventsOnGrid();
         }
@@ -775,18 +316,19 @@
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             const startOfWeek = new Date(d.setDate(diff));
             const endOfWeek = new Date(d.setDate(diff + 6));
+            
             const options = { month: 'short', day: 'numeric' };
-            mainHeaderTitle.innerText = `Week of ${startOfWeek.toLocaleDateString('en-US', options)} - ${endOfWeek.toLocaleDateString('en-US', { ...options, year: 'numeric'})}`;
+            els.mainHeaderTitle.innerText = `Week of ${startOfWeek.toLocaleDateString('en-US', options)} - ${endOfWeek.toLocaleDateString('en-US', { ...options, year: 'numeric'})}`;
+            
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            monthYearElement.innerText = `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getFullYear()}`;
-            calendarGrid.innerHTML = "";
-            const weekHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-            weekHeaders.forEach(dayName => {
-                const headerCell = document.createElement('div');
-                headerCell.className = 'grid-header-cell';
-                headerCell.innerText = dayName;
-                calendarGrid.appendChild(headerCell);
+            els.monthYear.innerText = `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getFullYear()}`;
+
+            els.calendarGrid.innerHTML = "";
+            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(dayName => {
+                const headerCell = document.createElement('div'); headerCell.className = 'grid-header-cell'; headerCell.innerText = dayName;
+                els.calendarGrid.appendChild(headerCell);
             });
+
             let loopDate = new Date(startOfWeek);
             for (let i = 0; i < 7; i++) {
                 const dayCell = document.createElement('div');
@@ -794,15 +336,13 @@
                 const dateKey = getFormattedDate(loopDate);
                 const dayNum = loopDate.getDate();
                 buildDayCellContent(dayCell, dateKey, dayNum);
-                calendarGrid.appendChild(dayCell);
+                els.calendarGrid.appendChild(dayCell);
                 loopDate.setDate(loopDate.getDate() + 1);
             }
             renderEventsOnGrid();
         }
 
         function buildDayCellContent(dayCell, dateKey, dayNum) {
-            const dateObj = new Date(dateKey + 'T12:00:00');
-            const dayOfWeek = dateObj.getDay(); 
             const dayType = getDayType(dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
 
@@ -830,15 +370,6 @@
             dayCell.addEventListener('click', () => openDayView(dateKey, dayType));
         }
 
-        prevBtn.addEventListener('click', () => {
-            if (currentView === 'month') { currentDate.setMonth(currentDate.getMonth() - 1); } else { currentDate.setDate(currentDate.getDate() - 7); }
-            renderCalendar();
-        });
-        nextBtn.addEventListener('click', () => {
-            if (currentView === 'month') { currentDate.setMonth(currentDate.getMonth() + 1); } else { currentDate.setDate(currentDate.getDate() + 7); }
-            renderCalendar();
-        });
-
         function renderEventsOnGrid() {
             const eventsByTarget = {};
             events.forEach(evt => {
@@ -848,10 +379,13 @@
                 if (!eventsByTarget[targetId]) eventsByTarget[targetId] = [];
                 eventsByTarget[targetId].push(evt);
             });
+
             Object.keys(eventsByTarget).forEach(targetId => {
                 const targetEl = document.getElementById(targetId);
                 if (!targetEl) return;
                 const evts = eventsByTarget[targetId];
+                
+                // Overflow logic for Month View
                 if (currentView === 'month' && evts.length > 2) {
                     const chip = createEventChip(evts[0]);
                     targetEl.appendChild(chip);
@@ -860,7 +394,7 @@
                     dotDiv.innerText = '...';
                     targetEl.appendChild(dotDiv);
                 } else {
-                    evts.forEach(evt => { const chip = createEventChip(evt); targetEl.appendChild(chip); });
+                    evts.forEach(evt => { targetEl.appendChild(createEventChip(evt)); });
                 }
             });
         }
@@ -869,6 +403,7 @@
             const chip = document.createElement('div');
             chip.className = 'event-chip';
             
+            // SSoC Styling
             if (evt.name === "Special Schedule of Calls") {
                 chip.style.background = "white";
                 chip.style.color = "black";
@@ -880,13 +415,11 @@
             }
 
             if (currentView === 'month') {
-                chip.innerText = `${evt.name}`;
+                chip.innerText = evt.name;
             } else {
                 let content = `<span style="font-weight:bold; display:block;">${evt.name}</span>`;
-                if (evt.startTime && evt.endTime) { 
-                    content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}-${evt.endTime}</span>`; 
-                } else if (evt.startTime) {
-                    content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}</span>`; 
+                if (evt.startTime) {
+                    content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}${evt.endTime ? '-' + evt.endTime : ''}</span>`;
                 }
                 if (evt.location) { content += `<span style="display:block; font-size:0.85em; font-style:italic; opacity:0.9;">${evt.location}</span>`; }
                 chip.innerHTML = content;
@@ -895,7 +428,9 @@
             return chip;
         }
 
-        editModeBtn.addEventListener('click', () => {
+        // --- EDIT MODE & UI HANDLERS ---
+
+        els.editModeBtn.addEventListener('click', () => {
             if (!isEditMode) {
                 const pin = prompt("Enter PIN to enable Edit Mode:");
                 if (pin === PIN_CODE) { isEditMode = true; updateEditModeUI(); } else { alert("Incorrect PIN."); }
@@ -904,66 +439,74 @@
 
         function updateEditModeUI() {
             if (isEditMode) {
-                editModeBtn.innerText = "Exit Edit Mode"; editModeBtn.classList.add('active'); addEventBtn.style.display = 'block';
+                els.editModeBtn.innerText = "Exit Edit Mode"; els.editModeBtn.classList.add('active'); els.addEventBtn.style.display = 'block';
             } else {
-                editModeBtn.innerText = "Edit Mode"; editModeBtn.classList.remove('active'); addEventBtn.style.display = 'none';
+                els.editModeBtn.innerText = "Edit Mode"; els.editModeBtn.classList.remove('active'); els.addEventBtn.style.display = 'none';
             }
-            if (dayViewModal.style.display === 'flex' && currentDayViewKey) {
+            if (els.dayViewModal.style.display === 'flex' && currentDayViewKey) {
                 const type = getDayType(currentDayViewKey); openDayView(currentDayViewKey, type);
             }
         }
 
         function openDayView(dateKey, dayType) {
             currentDayViewKey = dateKey;
-            dayViewDateDisplay.innerText = new Date(dateKey + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            dayViewTypeDisplay.innerText = dayType ? `Day: ${dayType}` : "No M/T Type";
-            dayViewList.innerHTML = ""; 
+            els.dayViewDateDisplay.innerText = new Date(dateKey + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            els.dayViewTypeDisplay.innerText = dayType ? `Day: ${dayType}` : "No M/T Type";
+            els.dayViewList.innerHTML = ""; 
 
             if (isEditMode) {
-                dayViewEditControls.style.display = 'flex';
-                
-                noSchoolCheck.checked = isNoSchoolDay(dateKey);
+                els.dayViewEditControls.style.display = 'flex';
+                els.noSchoolCheck.checked = isNoSchoolDay(dateKey);
                 const existingSSOC = events.find(e => e.date === dateKey && e.name === "Special Schedule of Calls");
-                ssocCheck.checked = !!existingSSOC;
+                els.ssocCheck.checked = !!existingSSOC;
                 
-                dayViewAddBtn.onclick = () => { dayViewModal.style.display = 'none'; openAddModal(dateKey); };
+                els.dayViewAddBtn.onclick = () => { els.dayViewModal.style.display = 'none'; openAddModal(dateKey); };
                 
-                noSchoolCheck.onclick = () => {
-                    const isNS = noSchoolCheck.checked;
-                    if(isNS) {
-                        if(!noSchoolDays.includes(dateKey)) noSchoolDays.push(dateKey);
-                    } else {
-                        noSchoolDays = noSchoolDays.filter(d => d !== dateKey);
-                    }
-                    localStorage.setItem('cs40_noschool_days', JSON.stringify(noSchoolDays));
-                    renderCalendar(); 
+                // NO SCHOOL TOGGLE
+                els.noSchoolCheck.onclick = async () => {
+                    const isNS = els.noSchoolCheck.checked;
+                    try {
+                        if (isNS) {
+                            await setDoc(doc(db, "noSchoolDays", dateKey), { active: true });
+                            noSchoolDays.push(dateKey);
+                        } else {
+                            await deleteDoc(doc(db, "noSchoolDays", dateKey));
+                            noSchoolDays = noSchoolDays.filter(d => d !== dateKey);
+                        }
+                        renderCalendar();
+                    } catch(e) { alert("Error saving: " + e.message); }
                 };
 
-                ssocCheck.onclick = () => {
-                    if (ssocCheck.checked) {
-                        const newEvent = {
-                            id: Date.now(),
-                            date: dateKey,
-                            name: "Special Schedule of Calls",
-                            period: "other", 
-                            classes: [] 
-                        };
-                        events.push(newEvent);
-                    } else {
-                        events = events.filter(e => !(e.date === dateKey && e.name === "Special Schedule of Calls"));
-                    }
-                    localStorage.setItem('cs40_events', JSON.stringify(events));
-                    openDayView(dateKey, dayType); 
-                    renderCalendar(); 
+                // SSOC TOGGLE
+                els.ssocCheck.onclick = async () => {
+                    try {
+                        if (els.ssocCheck.checked) {
+                            const newEvent = {
+                                date: dateKey,
+                                name: "Special Schedule of Calls",
+                                period: "other",
+                                classes: []
+                            };
+                            await addDoc(collection(db, "events"), newEvent);
+                        } else {
+                            // Find and delete ALL ssoc events for this day (cleanup)
+                            const ssocEvents = events.filter(e => e.date === dateKey && e.name === "Special Schedule of Calls");
+                            for (const evt of ssocEvents) {
+                                await deleteDoc(doc(db, "events", evt.id));
+                            }
+                        }
+                        await loadData(); // Reload to get IDs/Updates
+                    } catch(e) { alert("Error saving: " + e.message); }
                 };
 
             } else {
-                dayViewEditControls.style.display = 'none';
+                els.dayViewEditControls.style.display = 'none';
             }
 
             const dayEvents = events.filter(e => e.date === dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
 
+            // Sort logic
             if (isNoSchool) {
                 dayEvents.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
             } else {
@@ -972,164 +515,212 @@
             }
 
             if (dayEvents.length === 0) {
-                dayViewList.innerHTML = "<p style='color:#777; font-style:italic;'>No events scheduled.</p>";
+                els.dayViewList.innerHTML = "<p style='color:#777; font-style:italic;'>No events scheduled.</p>";
             } else {
                 dayEvents.forEach(evt => {
                     const item = document.createElement('div');
                     item.className = 'day-view-item';
                     const periodNames = { 'preflight': 'Preflight', 'morning': 'Morning Period', 'm5': 'M5', 'other': 'Other' };
-                    let attendanceStr;
-                    if (evt.classes.length === 0 || evt.classes.length === 4) { attendanceStr = 'All'; } else { attendanceStr = evt.classes.join(', '); }
+                    let attendanceStr = (!evt.classes || evt.classes.length === 0 || evt.classes.length === 4) ? 'All' : evt.classes.join(', ');
                     
                     let timeDisplay = "";
-                    if (evt.startTime && evt.endTime) { 
-                        timeDisplay = `${evt.startTime} - ${evt.endTime}`; 
-                    } else if (evt.startTime) {
-                        timeDisplay = evt.startTime;
-                    } else { 
-                        timeDisplay = periodNames[evt.period] || 'Other'; 
+                    if (evt.startTime) {
+                        timeDisplay = evt.startTime + (evt.endTime ? ` - ${evt.endTime}` : '');
+                    } else {
+                        timeDisplay = periodNames[evt.period] || 'Other';
                     }
 
                     let locationHtml = evt.location ? `<p><strong>Location:</strong> ${evt.location}</p>` : "";
                     
                     let leftCol = `<div class="day-view-info"><h4>${evt.name}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
                     if (isEditMode) {
-                        leftCol += `<button class="action-btn-sm edit-btn" style="display:inline-block;" onclick="editEvent('${evt.id}')">Edit</button>`;
-                        leftCol += `<button class="action-btn-sm delete-btn" style="display:inline-block;" onclick="deleteEvent('${evt.id}')">Delete</button>`;
+                        leftCol += `<button class="action-btn-sm edit-btn" style="display:inline-block;">Edit</button>`;
+                        leftCol += `<button class="action-btn-sm delete-btn" style="display:inline-block;">Delete</button>`;
                     }
                     leftCol += `</div>`;
-                    let rightCol = "";
-                    if (evt.notes && evt.notes.trim() !== "") { rightCol = `<div class="day-view-notes"><strong>Notes:</strong>${evt.notes}</div>`; }
+                    let rightCol = (evt.notes && evt.notes.trim()) ? `<div class="day-view-notes"><strong>Notes:</strong>${evt.notes}</div>` : "";
                     item.innerHTML = leftCol + rightCol;
-                    dayViewList.appendChild(item);
+
+                    // Wire buttons manually to avoid global scope issues
+                    if (isEditMode) {
+                        const editBtn = item.querySelector('.edit-btn');
+                        const delBtn = item.querySelector('.delete-btn');
+                        
+                        editBtn.onclick = () => { els.dayViewModal.style.display = 'none'; openAddModal(dateKey, evt); };
+                        
+                        delBtn.onclick = async () => {
+                            if(confirm("Delete this event?")) {
+                                try {
+                                    await deleteDoc(doc(db, "events", evt.id));
+                                    await loadData();
+                                    openDayView(dateKey, dayType);
+                                } catch(e) { alert("Error deleting: " + e.message); }
+                            }
+                        };
+                    }
+                    els.dayViewList.appendChild(item);
                 });
             }
-            dayViewModal.style.display = 'flex';
+            els.dayViewModal.style.display = 'flex';
         }
 
-        window.editEvent = function(id) {
-            const evt = events.find(e => e.id == id);
-            if(evt) { dayViewModal.style.display = 'none'; openAddModal(evt.date, evt); }
-        };
-
-        window.deleteEvent = function(id) {
-            if(confirm("Delete this event?")) {
-                events = events.filter(e => e.id != id);
-                localStorage.setItem('cs40_events', JSON.stringify(events));
-                const type = getDayType(currentDayViewKey);
-                openDayView(currentDayViewKey, type);
-                renderCalendar();
-            }
-        };
-
-        addEventBtn.addEventListener('click', () => { const todayStr = getFormattedDate(new Date()); openAddModal(todayStr); });
-
-        customTimeCheck.addEventListener('change', () => { updateModalOptions(eventDateInput.value); });
+        // --- ADD/EDIT MODAL LOGIC ---
 
         function openAddModal(dateStr, eventToEdit = null) {
-            eventNameInput.value = ''; eventLocationInput.value = ''; startTimeInput.value = ''; endTimeInput.value = ''; eventNotesInput.value = '';
-            allClassesCheck.checked = false; classChecks.forEach(cb => cb.checked = false);
-            customTimeCheck.checked = false; 
+            // Reset
+            els.eventName.value = ''; els.eventLocation.value = ''; els.startTime.value = ''; els.endTime.value = ''; els.eventNotes.value = '';
+            els.allClassesCheck.checked = false; classChecks.forEach(cb => cb.checked = false);
+            els.customTimeCheck.checked = false;
             
             if (eventToEdit) {
                 editingEventId = eventToEdit.id;
-                modalTitle.innerText = "Edit Event";
-                saveEventBtn.innerText = "Update Event";
-                eventDateInput.value = eventToEdit.date;
-                eventNameInput.value = eventToEdit.name;
-                eventLocationInput.value = eventToEdit.location || '';
-                eventNotesInput.value = eventToEdit.notes || '';
-                eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; });
-                const allChecked = Array.from(classChecks).every(c => c.checked) && classChecks.length > 0;
-                if(eventToEdit.classes.length === 4) allClassesCheck.checked = true;
+                els.modalTitle.innerText = "Edit Event";
+                els.saveEventBtn.innerText = "Update Event";
                 
+                els.eventDate.value = eventToEdit.date;
+                els.eventName.value = eventToEdit.name;
+                els.eventLocation.value = eventToEdit.location || '';
+                els.eventNotes.value = eventToEdit.notes || '';
+                
+                // Classes
+                if(eventToEdit.classes) {
+                    eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; });
+                    if(eventToEdit.classes.length === 4) els.allClassesCheck.checked = true;
+                }
+
                 const isNoSchool = isWeekendOrNoSchool(eventToEdit.date);
                 if (isNoSchool) {
-                    startTimeInput.value = eventToEdit.startTime || ''; endTimeInput.value = eventToEdit.endTime || '';
+                    els.startTime.value = eventToEdit.startTime || ''; 
+                    els.endTime.value = eventToEdit.endTime || '';
                 } else {
-                    eventPeriodSelect.value = eventToEdit.period;
+                    els.eventPeriod.value = eventToEdit.period;
                     if (eventToEdit.period !== 'other' && (eventToEdit.startTime || eventToEdit.endTime)) {
-                        customTimeCheck.checked = true;
+                        els.customTimeCheck.checked = true;
                     }
-                    if (eventToEdit.startTime) startTimeInput.value = eventToEdit.startTime;
-                    if (eventToEdit.endTime) endTimeInput.value = eventToEdit.endTime;
+                    els.startTime.value = eventToEdit.startTime || ''; 
+                    els.endTime.value = eventToEdit.endTime || '';
                 }
                 updateModalOptions(eventToEdit.date);
             } else {
-                editingEventId = null; modalTitle.innerText = "Add Event"; saveEventBtn.innerText = "Save";
-                eventDateInput.value = dateStr; updateModalOptions(dateStr); 
+                editingEventId = null; 
+                els.modalTitle.innerText = "Add Event"; 
+                els.saveEventBtn.innerText = "Save";
+                els.eventDate.value = dateStr; 
+                updateModalOptions(dateStr); 
             }
-            eventModal.style.display = 'flex';
+            els.eventModal.style.display = 'flex';
         }
-
-        eventPeriodSelect.addEventListener('change', () => { updateModalOptions(eventDateInput.value); });
-        eventDateInput.addEventListener('change', (e) => { updateModalOptions(e.target.value); });
 
         function updateModalOptions(dateStr) {
             const isNoSchool = isWeekendOrNoSchool(dateStr);
-            const selectedPeriod = eventPeriodSelect.value;
+            const selectedPeriod = els.eventPeriod.value;
             
             if (isNoSchool) {
-                periodGroup.style.display = 'none'; 
-                timeframeGroup.style.display = 'block';
-                customTimeCheckContainer.style.display = 'none';
+                els.periodGroup.style.display = 'none'; 
+                els.timeframeGroup.style.display = 'block';
+                els.customTimeCheckContainer.style.display = 'none';
             } else {
-                periodGroup.style.display = 'block';
-                
+                els.periodGroup.style.display = 'block';
                 if (selectedPeriod === 'other') {
-                    customTimeCheckContainer.style.display = 'none';
-                    timeframeGroup.style.display = 'block'; 
+                    els.customTimeCheckContainer.style.display = 'none';
+                    els.timeframeGroup.style.display = 'block'; 
                 } else {
-                    customTimeCheckContainer.style.display = 'block';
-                    timeframeGroup.style.display = customTimeCheck.checked ? 'block' : 'none'; 
+                    els.customTimeCheckContainer.style.display = 'block';
+                    els.timeframeGroup.style.display = els.customTimeCheck.checked ? 'block' : 'none'; 
                 }
-                
                 const dayType = getDayType(dateStr);
                 if (dayType.startsWith('T')) {
-                    optionM5.style.display = 'none'; if (eventPeriodSelect.value === 'm5') { eventPeriodSelect.value = 'preflight'; }
-                } else { optionM5.style.display = 'block'; }
+                    els['opt-m5'].style.display = 'none'; 
+                    if (els.eventPeriod.value === 'm5') els.eventPeriod.value = 'preflight'; 
+                } else { els['opt-m5'].style.display = 'block'; }
             }
         }
 
-        allClassesCheck.addEventListener('change', (e) => { classChecks.forEach(cb => cb.checked = e.target.checked); });
-        classChecks.forEach(cb => { cb.addEventListener('change', () => { const allChecked = Array.from(classChecks).every(c => c.checked); allClassesCheck.checked = allChecked; }); });
+        els.customTimeCheck.addEventListener('change', () => updateModalOptions(els.eventDate.value));
+        els.eventPeriod.addEventListener('change', () => updateModalOptions(els.eventDate.value));
+        els.eventDate.addEventListener('change', (e) => updateModalOptions(e.target.value));
+        
+        els.allClassesCheck.addEventListener('change', (e) => { classChecks.forEach(cb => cb.checked = e.target.checked); });
+        classChecks.forEach(cb => { cb.addEventListener('change', () => { els.allClassesCheck.checked = Array.from(classChecks).every(c => c.checked); }); });
 
-        cancelBtn.addEventListener('click', () => { eventModal.style.display = 'none'; });
-        closeDayViewBtn.addEventListener('click', () => { dayViewModal.style.display = 'none'; });
-        window.onclick = function(event) { if (event.target == eventModal) eventModal.style.display = "none"; if (event.target == dayViewModal) dayViewModal.style.display = "none"; }
+        els.cancelBtn.onclick = () => els.eventModal.style.display = 'none';
+        els.closeDayView.onclick = () => els.dayViewModal.style.display = 'none';
+        window.onclick = (e) => { 
+            if (e.target == els.eventModal) els.eventModal.style.display = "none"; 
+            if (e.target == els.dayViewModal) els.dayViewModal.style.display = "none"; 
+        };
 
-        saveEventBtn.addEventListener('click', () => {
-            const date = document.getElementById('eventDate').value;
-            const name = document.getElementById('eventName').value;
-            const location = document.getElementById('eventLocation').value;
-            const notes = document.getElementById('eventNotes').value;
-            const period = document.getElementById('eventPeriod').value;
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
-            const selectedClasses = [];
-            document.querySelectorAll('.class-check:checked').forEach(cb => selectedClasses.push(cb.value));
-            if (!date || !name) { alert("Please fill in Date and Event Name"); return; }
-            
-            const isNoSchool = isWeekendOrNoSchool(date);
-            const hasTimeframe = isNoSchool || period === 'other' || customTimeCheck.checked;
-            
-            const eventData = {
-                id: editingEventId ? editingEventId : Date.now(),
-                date, name, location, notes,
-                period: isNoSchool ? 'weekend' : period, 
-                startTime: hasTimeframe ? start : null, endTime: hasTimeframe ? end : null, 
-                classes: selectedClasses 
-            };
-            if (editingEventId) {
-                const index = events.findIndex(e => e.id === editingEventId);
-                if (index !== -1) events[index] = eventData;
-            } else { events.push(eventData); }
-            localStorage.setItem('cs40_events', JSON.stringify(events));
-            eventModal.style.display = 'none';
+        // --- MAIN HEADER LOGO / ACTIONS ---
+        els.mainHeaderLogo.addEventListener('dblclick', () => {
+            els.headerActionsLeft.classList.toggle('force-hide');
+            els.headerActionsRight.classList.toggle('force-hide');
+            els.calendarNavHeader.classList.toggle('hidden');
+            if (els.headerActionsRight.classList.contains('force-hide')) {
+                els.cleanModeLegend.classList.add('force-show-flex');
+            } else {
+                els.cleanModeLegend.classList.remove('force-show-flex');
+            }
+        });
+
+        els.weekViewBtn.addEventListener('click', () => {
+            currentView = (currentView === 'month') ? 'week' : 'month';
+            els.weekViewBtn.innerText = (currentView === 'month') ? "Week View" : "Month View";
             renderCalendar();
         });
 
-        renderCalendar();
+        els.prevBtn.addEventListener('click', () => {
+            if (currentView === 'month') { currentDate.setMonth(currentDate.getMonth() - 1); } else { currentDate.setDate(currentDate.getDate() - 7); }
+            renderCalendar();
+        });
+        els.nextBtn.addEventListener('click', () => {
+            if (currentView === 'month') { currentDate.setMonth(currentDate.getMonth() + 1); } else { currentDate.setDate(currentDate.getDate() + 7); }
+            renderCalendar();
+        });
+        
+        els.addEventBtn.addEventListener('click', () => { openAddModal(getFormattedDate(new Date())); });
+
+        // --- SAVE EVENT LOGIC ---
+        els.saveEventBtn.addEventListener('click', async () => {
+            const date = els.eventDate.value;
+            const name = els.eventName.value;
+            if (!date || !name) { alert("Please fill in Date and Event Name"); return; }
+
+            const selectedClasses = [];
+            document.querySelectorAll('.class-check:checked').forEach(cb => selectedClasses.push(cb.value));
+            
+            const isNoSchool = isWeekendOrNoSchool(date);
+            const hasTimeframe = isNoSchool || els.eventPeriod.value === 'other' || els.customTimeCheck.checked;
+
+            const eventData = {
+                date, name, 
+                location: els.eventLocation.value, 
+                notes: els.eventNotes.value,
+                period: isNoSchool ? 'weekend' : els.eventPeriod.value,
+                startTime: hasTimeframe ? els.startTime.value : null, 
+                endTime: hasTimeframe ? els.endTime.value : null, 
+                classes: selectedClasses 
+            };
+
+            els.saveEventBtn.innerText = "Saving...";
+            
+            try {
+                if (editingEventId) {
+                    await updateDoc(doc(db, "events", editingEventId), eventData);
+                } else {
+                    await addDoc(collection(db, "events"), eventData);
+                }
+                await loadData();
+                els.eventModal.style.display = 'none';
+            } catch (e) {
+                alert("Error saving event: " + e.message);
+            } finally {
+                els.saveEventBtn.innerText = "Save";
+            }
+        });
+
+        // Initialize
+        loadData();
+
     </script>
 </body>
 </html>
