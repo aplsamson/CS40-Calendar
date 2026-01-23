@@ -19,20 +19,22 @@
         
         .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
         
-        /* HEADER ACTIONS RIGHT (Dynamic Layout) */
+        /* HEADER ACTIONS RIGHT */
         .header-actions-right { 
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
-            display: flex; gap: 10px; z-index: 20; 
-            transition: all 0.3s ease;
-            /* Default: Row (Side-by-side) */
-            flex-direction: row; 
-            align-items: center; 
+            display: flex; 
+            flex-direction: row; /* Horizontal layout: Filter | Stack */
+            align-items: center; /* Center filter button relative to stack */
+            gap: 12px; 
+            z-index: 20; 
         }
-        
-        /* Edit Mode State: Vertical Column, Centered Items */
-        .header-actions-right.edit-active {
+
+        /* NEW STACK FOR EDIT/ADD BUTTONS */
+        .action-buttons-stack {
+            display: flex;
             flex-direction: column;
-            align-items: center; /* Centers the small filter button between the wide ones */
+            gap: 5px;
+            align-items: flex-end; /* Right align buttons */
         }
         
         .clean-mode-legend { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: none; background: white; padding: 15px 20px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); gap: 8px; flex-direction: column; align-items: flex-start; z-index: 20; min-width: 120px; }
@@ -54,9 +56,9 @@
             background-color: white; color: #333; border: 1px solid #ccc; 
             width: 40px; height: 40px; padding: 0;
             display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; /* Circle */
+            border-radius: 50%; 
             cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            flex-shrink: 0; /* Prevent squishing */
+            flex-shrink: 0;
         }
         .filter-btn:hover { background-color: #f0f0f0; }
         .filter-btn svg { width: 20px; height: 20px; fill: #555; }
@@ -171,13 +173,14 @@
             <h1 class="header-title" id="mainHeaderTitle">CS40 Calendar</h1>
         </div>
         <div class="header-actions-right" id="headerActionsRight">
-            <button id="editModeBtn" class="header-btn edit-mode-btn">Edit Mode</button>
-            
             <button id="filterBtn" class="filter-btn" title="Filter Events">
                 <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
             </button>
             
-            <button id="addEventBtn" class="header-btn add-event-btn-main">+ Add Event</button>
+            <div class="action-buttons-stack">
+                <button id="editModeBtn" class="header-btn edit-mode-btn">Edit Mode</button>
+                <button id="addEventBtn" class="header-btn add-event-btn-main">+ Add Event</button>
+            </div>
         </div>
         <div class="clean-mode-legend" id="cleanModeLegend">
             <div class="legend-item"><div class="legend-dot" style="background: #d9534f;"></div> 26ers</div>
@@ -560,11 +563,9 @@
         function updateEditModeUI() {
             if (isEditMode) { 
                 els.editModeBtn.innerText = "Exit Edit Mode"; 
-                els.headerActionsRight.classList.add('edit-active');
                 els.addEventBtn.style.display = 'block'; 
             } else { 
                 els.editModeBtn.innerText = "Edit Mode"; 
-                els.headerActionsRight.classList.remove('edit-active');
                 els.addEventBtn.style.display = 'none'; 
             }
             if (els.dayViewModal.style.display === 'flex' && currentDayViewKey) {
