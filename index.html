@@ -212,13 +212,13 @@
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
-            apiKey: "AIzaSy...",
-            authDomain: "your-project.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "123456",
-            appId: "1:123456:web:abcdef"
-        };
+        apiKey: "AIzaSyCyoUxG8Qfc6g5kwgqRK0Q2J0k1tXtQeVs",
+        authDomain: "cs40-calendar.firebaseapp.com",
+        projectId: "cs40-calendar",
+        storageBucket: "cs40-calendar.firebasestorage.app",
+        messagingSenderId: "661443751516",
+        appId: "1:661443751516:web:ddee708ab5a1014cadc099"
+    };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -502,6 +502,7 @@
         }
 
         // --- EDIT MODE & UI HANDLERS ---
+
 
         els.editModeBtn.addEventListener('click', () => {
             if (!isEditMode) {
