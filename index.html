@@ -2,10 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CS40 Calendar</title>
     
     <style>
+        /* --- GLOBAL SCALING FIX --- */
+        html {
+            font-size: 14px; 
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -19,6 +24,8 @@
             display: flex;
             flex-direction: column;
             align-items: center; 
+            overflow-x: hidden; 
+            width: 100%;
         }
 
         /* --- TOP CONTAINER --- */
@@ -46,7 +53,7 @@
         }
 
         .header-logo {
-            height: 80px;
+            height: 5rem; 
             width: auto;
             margin-right: 20px;
             cursor: pointer;
@@ -87,7 +94,7 @@
             transition: opacity 0.3s;
         }
 
-        /* --- CLEAN MODE LEGEND --- */
+        /* --- CLEAN MODE LEGEND (STACKED) --- */
         .clean-mode-legend {
             position: absolute;
             right: 0; 
@@ -311,7 +318,6 @@
             z-index: 5;
             position: relative;
             text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-            /* Removed max-width to allow full width stretching on weekends */
         }
         
         .day-cell.week-view .event-chip {
@@ -357,6 +363,7 @@
             padding: 25px;
             border-radius: 8px;
             width: 550px; 
+            max-width: 90%;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
             min-height: 200px; 
@@ -382,7 +389,7 @@
         .time-inputs { display: flex; gap: 10px; }
         .time-inputs input { flex: 1; }
 
-        .checkbox-group { display: flex; gap: 15px; align-items: center; }
+        .checkbox-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; }
         .checkbox-all { border-right: 1px solid #ccc; padding-right: 15px; margin-right: 5px; }
 
@@ -467,19 +474,31 @@
         }
         .day-view-add-btn:hover { background-color: #001e54; }
         
-        /* SPECIAL DAY CHECKBOX */
-        .special-day-toggle {
+        /* BOTTOM LEFT TOGGLES CONTAINER */
+        .day-view-toggles {
             position: absolute;
             bottom: 20px;
             left: 25px;
             display: none; /* Hidden unless in edit mode */
+            gap: 20px; /* Horizontal space between items */
+            align-items: center;
+        }
+
+        .toggle-item {
             font-weight: bold;
-            color: #d9534f;
+            color: #333;
+            display: flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
+            font-size: 0.95rem;
         }
-        .special-day-toggle input {
+        
+        /* Specific colors for toggle labels */
+        .label-ssoc { color: #003087; }
+        .label-noschool { color: #d9534f; }
+
+        .toggle-item input {
             transform: scale(1.2);
             cursor: pointer;
         }
@@ -534,7 +553,7 @@
 
             <div class="form-group">
                 <label>Event Name</label>
-                <input type="text" id="eventName" class="form-control" placeholder="e.g. Preflight">
+                <input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Briefs">
             </div>
 
             <div class="form-group">
@@ -595,9 +614,14 @@
             
             <button id="dayViewAddBtn" class="day-view-add-btn" title="Add event">+</button>
             
-            <label class="special-day-toggle" id="specialDayToggle">
-                <input type="checkbox" id="specialDayCheck"> Special Day
-            </label>
+            <div class="day-view-toggles" id="dayViewToggles">
+                <label class="toggle-item label-ssoc">
+                    <input type="checkbox" id="ssocCheck"> SSoC
+                </label>
+                <label class="toggle-item label-noschool">
+                    <input type="checkbox" id="noSchoolCheck"> No School
+                </label>
+            </div>
         </div>
     </div>
 
@@ -643,12 +667,13 @@
         const dayViewList = document.getElementById('dayViewList');
         const dayViewAddBtn = document.getElementById('dayViewAddBtn');
         
-        const specialDayToggle = document.getElementById('specialDayToggle');
-        const specialDayCheck = document.getElementById('specialDayCheck');
+        const dayViewToggles = document.getElementById('dayViewToggles');
+        const ssocCheck = document.getElementById('ssocCheck');
+        const noSchoolCheck = document.getElementById('noSchoolCheck');
 
         let currentDate = new Date();
         let events = JSON.parse(localStorage.getItem('cs40_events')) || [];
-        let specialDays = JSON.parse(localStorage.getItem('cs40_special_days')) || [];
+        let noSchoolDays = JSON.parse(localStorage.getItem('cs40_noschool_days')) || [];
         const PIN_CODE = "2640";
         let isEditMode = false;
         let currentDayViewKey = null; 
@@ -669,14 +694,14 @@
             return "";
         }
         
-        function isSpecialDay(dateStr) {
-            return specialDays.includes(dateStr);
+        function isNoSchoolDay(dateStr) {
+            return noSchoolDays.includes(dateStr);
         }
         
-        function isWeekendOrSpecial(dateStr) {
+        function isWeekendOrNoSchool(dateStr) {
             const d = new Date(dateStr + 'T12:00:00');
             const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
-            return isWeekend || isSpecialDay(dateStr);
+            return isWeekend || isNoSchoolDay(dateStr);
         }
 
         function getChipBackground(classes) {
@@ -790,12 +815,12 @@
             const dateObj = new Date(dateKey + 'T12:00:00');
             const dayOfWeek = dateObj.getDay(); 
             const dayType = getDayType(dateKey);
-            const isSpecial = isWeekendOrSpecial(dateKey);
+            const isNoSchool = isWeekendOrNoSchool(dateKey);
 
             let htmlContent = `<span class="date-number">${dayNum}</span><div class="day-type">${dayType}</div>`;
             htmlContent += `<div class="day-content">`;
 
-            if (isSpecial) {
+            if (isNoSchool) {
                 // FIXED: Removed align-items:center; to force stretch (full width)
                 htmlContent += `<div class="day-section" style="border:none; height:100%; display:flex; flex-direction:column; justify-content:center;" id="cell-${dateKey}-weekend"></div>`;
             } else if (dayType.startsWith('T')) {
@@ -830,8 +855,8 @@
             const eventsByTarget = {};
             events.forEach(evt => {
                 let targetId;
-                const isSpecial = isWeekendOrSpecial(evt.date);
-                if (isSpecial) { targetId = `cell-${evt.date}-weekend`; } else { targetId = `cell-${evt.date}-${evt.period}`; }
+                const isNoSchool = isWeekendOrNoSchool(evt.date);
+                if (isNoSchool) { targetId = `cell-${evt.date}-weekend`; } else { targetId = `cell-${evt.date}-${evt.period}`; }
                 if (!eventsByTarget[targetId]) eventsByTarget[targetId] = [];
                 eventsByTarget[targetId].push(evt);
             });
@@ -859,7 +884,13 @@
                 chip.innerText = `${evt.name}`;
             } else {
                 let content = `<span style="font-weight:bold; display:block;">${evt.name}</span>`;
-                if (evt.startTime && evt.endTime) { content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}-${evt.endTime}</span>`; }
+                if (evt.startTime && evt.endTime) { 
+                    content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}-${evt.endTime}</span>`; 
+                } else if (evt.startTime) {
+                    // Start time only
+                    content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}</span>`; 
+                }
+                
                 if (evt.location) { content += `<span style="display:block; font-size:0.85em; font-style:italic; opacity:0.9;">${evt.location}</span>`; }
                 chip.innerHTML = content;
             }
@@ -893,30 +924,57 @@
 
             if (isEditMode) {
                 dayViewAddBtn.style.display = 'flex';
-                specialDayToggle.style.display = 'flex';
-                specialDayCheck.checked = isSpecialDay(dateKey);
+                dayViewToggles.style.display = 'flex';
+                
+                noSchoolCheck.checked = isNoSchoolDay(dateKey);
+                // Check if SSOC event exists
+                const existingSSOC = events.find(e => e.date === dateKey && e.name === "Special Schedule of Calls");
+                ssocCheck.checked = !!existingSSOC;
                 
                 dayViewAddBtn.onclick = () => { dayViewModal.style.display = 'none'; openAddModal(dateKey); };
                 
-                specialDayCheck.onclick = () => {
-                    const isSpecial = specialDayCheck.checked;
-                    if(isSpecial) {
-                        if(!specialDays.includes(dateKey)) specialDays.push(dateKey);
+                // NO SCHOOL Logic
+                noSchoolCheck.onclick = () => {
+                    const isNS = noSchoolCheck.checked;
+                    if(isNS) {
+                        if(!noSchoolDays.includes(dateKey)) noSchoolDays.push(dateKey);
                     } else {
-                        specialDays = specialDays.filter(d => d !== dateKey);
+                        noSchoolDays = noSchoolDays.filter(d => d !== dateKey);
                     }
-                    localStorage.setItem('cs40_special_days', JSON.stringify(specialDays));
+                    localStorage.setItem('cs40_noschool_days', JSON.stringify(noSchoolDays));
                     renderCalendar(); 
                 };
+
+                // SSOC Logic
+                ssocCheck.onclick = () => {
+                    if (ssocCheck.checked) {
+                        // Create SSOC event
+                        const newEvent = {
+                            id: Date.now(),
+                            date: dateKey,
+                            name: "Special Schedule of Calls",
+                            period: "other", // Puts it at top of list
+                            classes: [] // Default All
+                        };
+                        events.push(newEvent);
+                    } else {
+                        // Remove SSOC event
+                        events = events.filter(e => !(e.date === dateKey && e.name === "Special Schedule of Calls"));
+                    }
+                    localStorage.setItem('cs40_events', JSON.stringify(events));
+                    openDayView(dateKey, dayType); // Refresh list
+                    renderCalendar(); // Refresh background
+                };
+
             } else {
                 dayViewAddBtn.style.display = 'none';
-                specialDayToggle.style.display = 'none';
+                dayViewToggles.style.display = 'none';
             }
 
             const dayEvents = events.filter(e => e.date === dateKey);
-            const isSpecial = isWeekendOrSpecial(dateKey);
+            const isNoSchool = isWeekendOrNoSchool(dateKey);
 
-            if (isSpecial) {
+            if (isNoSchool) {
                 dayEvents.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
             } else {
                 const periodOrder = { 'preflight': 1, 'morning': 2, 'm5': 3, 'other': 4 };
@@ -932,8 +990,17 @@
                     const periodNames = { 'preflight': 'Preflight', 'morning': 'Morning Period', 'm5': 'M5', 'other': 'Other' };
                     let attendanceStr;
                     if (evt.classes.length === 0 || evt.classes.length === 4) { attendanceStr = 'All'; } else { attendanceStr = evt.classes.join(', '); }
+                    
+                    // Time Logic
                     let timeDisplay = "";
-                    if (evt.startTime && evt.endTime) { timeDisplay = `${evt.startTime} - ${evt.endTime}`; } else { timeDisplay = periodNames[evt.period] || 'Other'; }
+                    if (evt.startTime && evt.endTime) { 
+                        timeDisplay = `${evt.startTime} - ${evt.endTime}`; 
+                    } else if (evt.startTime) {
+                        timeDisplay = evt.startTime;
+                    } else { 
+                        timeDisplay = periodNames[evt.period] || 'Other'; 
+                    }
+
                     let locationHtml = evt.location ? `<p><strong>Location:</strong> ${evt.location}</p>` : "";
                     
                     let leftCol = `<div class="day-view-info"><h4>${evt.name}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
@@ -984,8 +1051,8 @@
                 const allChecked = Array.from(classChecks).every(c => c.checked) && classChecks.length > 0;
                 if(eventToEdit.classes.length === 4) allClassesCheck.checked = true;
                 updateModalOptions(eventToEdit.date);
-                const isSpecial = isWeekendOrSpecial(eventToEdit.date);
-                if (isSpecial) {
+                const isNoSchool = isWeekendOrNoSchool(eventToEdit.date);
+                if (isNoSchool) {
                     startTimeInput.value = eventToEdit.startTime || ''; endTimeInput.value = eventToEdit.endTime || '';
                 } else {
                     eventPeriodSelect.value = eventToEdit.period;
@@ -1004,9 +1071,9 @@
         eventDateInput.addEventListener('change', (e) => { updateModalOptions(e.target.value); });
 
         function updateModalOptions(dateStr) {
-            const isSpecial = isWeekendOrSpecial(dateStr);
+            const isNoSchool = isWeekendOrNoSchool(dateStr);
             const selectedPeriod = eventPeriodSelect.value;
-            if (isSpecial) {
+            if (isNoSchool) {
                 periodGroup.style.display = 'none'; timeframeGroup.style.display = 'block';
             } else {
                 periodGroup.style.display = 'block';
@@ -1036,12 +1103,12 @@
             const selectedClasses = [];
             document.querySelectorAll('.class-check:checked').forEach(cb => selectedClasses.push(cb.value));
             if (!date || !name) { alert("Please fill in Date and Event Name"); return; }
-            const isSpecial = isWeekendOrSpecial(date);
-            const hasTimeframe = isSpecial || period === 'other';
+            const isNoSchool = isWeekendOrNoSchool(date);
+            const hasTimeframe = isNoSchool || period === 'other';
             const eventData = {
                 id: editingEventId ? editingEventId : Date.now(),
                 date, name, location, notes,
-                period: isSpecial ? 'weekend' : period, 
+                period: isNoSchool ? 'weekend' : period, 
                 startTime: hasTimeframe ? start : null, endTime: hasTimeframe ? end : null, 
                 classes: selectedClasses 
             };
@@ -1057,5 +1124,4 @@
         renderCalendar();
     </script>
 </body>
-
 </html>
