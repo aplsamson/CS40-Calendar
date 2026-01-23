@@ -48,11 +48,19 @@
         .day-cell.inactive { background-color: #eee; cursor: default; }
 
         .date-number { position: absolute; top: 5px; left: 8px; font-weight: bold; font-size: 1.1rem; color: #333; z-index: 2; pointer-events: none; }
+        /* Current Day Red Highlight */
+        .date-number.current-day { color: #ff0000 !important; font-size: 1.2rem; }
+
         .day-type { position: absolute; top: 5px; width: 100%; text-align: center; font-weight: bold; font-size: 0.95rem; color: #003087; z-index: 2; pointer-events: none; }
         
-        .day-content { flex: 1; display: flex; flex-direction: column; padding-top: 25px; height: 100%; }
+        /* Weekend Label (Silver/Blue) */
+        .weekend-label {
+            position: absolute; top: 22px; width: 100%; text-align: center;
+            font-size: 0.8rem; font-weight: bold; color: #666; z-index: 1; pointer-events: none;
+        }
+
+        .day-content { flex: 1; display: flex; flex-direction: column; padding-top: 35px; height: 100%; } /* Increased top padding for labels */
         .day-section { flex: 1; border-bottom: 1px dotted #999; width: 100%; font-size: 0.75rem; padding: 3px 2px; overflow: hidden; position: relative; }
-        /* Dynamic Week View Fix */
         .day-cell.week-view .day-section { height: auto; flex: 1 0 auto; min-height: 80px; }
         .day-section:last-child { border-bottom: none; }
         .day-section::after { content: attr(data-label); position: absolute; bottom: 2px; right: 4px; font-size: 0.65rem; color: #999; pointer-events: none; opacity: 0.7; font-weight: bold; text-transform: uppercase; }
@@ -73,7 +81,12 @@
         .time-inputs input { flex: 1; }
         .checkbox-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        
+        /* Updated Modal Footer Layout */
+        .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .modal-actions { display: flex; gap: 10px; }
+        .mandatory-toggle { display: flex; align-items: center; gap: 8px; font-weight: bold; color: #d9534f; cursor: pointer; }
+        
         .btn-cancel { background: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-save { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 
@@ -158,7 +171,16 @@
             <div class="form-group" id="timeframeGroup" style="display:none;"><label>Timeframe</label><div class="time-inputs"><input type="time" id="startTime" class="form-control"><span style="align-self:center;">to</span><input type="time" id="endTime" class="form-control"></div></div>
             <div class="form-group"><label>Class Attendance</label><div class="checkbox-group"><label class="checkbox-all"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
             <div class="form-group"><label>Notes</label><textarea id="eventNotes" class="form-control" placeholder="Optional details..."></textarea></div>
-            <div class="modal-actions"><button id="cancelBtn" class="btn-cancel">Cancel</button><button id="saveEventBtn" class="btn-save">Save</button></div>
+            
+            <div class="modal-footer">
+                <label class="mandatory-toggle">
+                    <input type="checkbox" id="mandatoryCheck" checked> Mandatory
+                </label>
+                <div class="modal-actions" style="margin-top: 0;">
+                    <button id="cancelBtn" class="btn-cancel">Cancel</button>
+                    <button id="saveEventBtn" class="btn-save">Save</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -169,8 +191,13 @@
                 <div class="header-text-group"><div class="day-view-date" id="dayViewDateDisplay">Date</div><div class="day-view-type" id="dayViewTypeDisplay">M1</div></div>
                 <div class="day-view-edit-controls" id="dayViewEditControls">
                     <button id="dayViewAddBtn" class="day-view-add-btn-rect">+ Add Event</button>
-                    <label class="toggle-item label-ssoc"><input type="checkbox" id="ssocCheck"> SSoC</label>
-                    <label class="toggle-item label-noschool"><input type="checkbox" id="noSchoolCheck"> No School</label>
+                    <div id="standardControls">
+                        <label class="toggle-item label-ssoc"><input type="checkbox" id="ssocCheck"> SSoC</label>
+                        <label class="toggle-item label-noschool"><input type="checkbox" id="noSchoolCheck"> No School</label>
+                    </div>
+                    <div id="saturdayControls" style="display:none;">
+                        <label class="toggle-item" style="color: #666;"><input type="checkbox" id="silverCheck"> Silver Saturday</label>
+                    </div>
                 </div>
             </div>
             <div id="dayViewList" class="day-view-list"></div>
@@ -185,12 +212,12 @@
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
-            apiKey: "AIzaSyCyoUxG8Qfc6g5kwgqRK0Q2J0k1tXtQeVs",
-            authDomain: "cs40-calendar.firebaseapp.com",
-            projectId: "cs40-calendar",
-            storageBucket: "cs40-calendar.firebasestorage.app",
-            messagingSenderId: "661443751516",
-            appId: "1:661443751516:web:ddee708ab5a1014cadc099"
+            apiKey: "AIzaSy...",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456",
+            appId: "1:123456:web:abcdef"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -200,6 +227,7 @@
         let currentDate = new Date();
         let events = [];
         let noSchoolDays = [];
+        let silverDays = []; // New collection
         const PIN_CODE = "2640";
         let isEditMode = false;
         let currentDayViewKey = null; 
@@ -214,7 +242,8 @@
          'eventPeriod','eventNotes','opt-m5','periodGroup','timeframeGroup','startTime','endTime',
          'customTimeCheck','customTimeCheckContainer','allClassesCheck','dayViewModal','closeDayView',
          'dayViewDateDisplay','dayViewTypeDisplay','dayViewList','dayViewAddBtn','dayViewEditControls',
-         'ssocCheck','noSchoolCheck', 'pinModal', 'pinInput', 'cancelPinBtn', 'submitPinBtn'
+         'ssocCheck','noSchoolCheck', 'pinModal', 'pinInput', 'cancelPinBtn', 'submitPinBtn',
+         'mandatoryCheck', 'standardControls', 'saturdayControls', 'silverCheck'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -235,6 +264,13 @@
                 noSchoolDays = [];
                 noSchoolSnapshot.forEach((doc) => {
                     noSchoolDays.push(doc.id);
+                });
+
+                // Fetch Silver Days
+                const silverSnapshot = await getDocs(collection(db, "silverDays"));
+                silverDays = [];
+                silverSnapshot.forEach((doc) => {
+                    silverDays.push(doc.id);
                 });
 
                 renderCalendar();
@@ -288,6 +324,7 @@
 
         function renderMonthView() {
             els.mainHeaderTitle.innerText = "CS40 Calendar";
+            const todayStr = getFormattedDate(new Date());
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -312,13 +349,23 @@
             for (let i = 1; i <= daysInMonth; i++) {
                 const dayCell = document.createElement('div'); dayCell.className = 'day-cell';
                 const dateKey = getFormattedDate(new Date(year, month, i));
+                
+                // Build Content
                 buildDayCellContent(dayCell, dateKey, i);
+                
+                // Highlight Current Day
+                if (dateKey === todayStr) {
+                    const numSpan = dayCell.querySelector('.date-number');
+                    if(numSpan) numSpan.classList.add('current-day');
+                }
+                
                 els.calendarGrid.appendChild(dayCell);
             }
             renderEventsOnGrid();
         }
 
         function renderWeekView() {
+            const todayStr = getFormattedDate(new Date());
             const d = new Date(currentDate);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
@@ -343,7 +390,15 @@
                 dayCell.classList.add('day-cell', 'week-view');
                 const dateKey = getFormattedDate(loopDate);
                 const dayNum = loopDate.getDate();
+                
                 buildDayCellContent(dayCell, dateKey, dayNum);
+                
+                // Highlight Current Day
+                if (dateKey === todayStr) {
+                    const numSpan = dayCell.querySelector('.date-number');
+                    if(numSpan) numSpan.classList.add('current-day');
+                }
+
                 els.calendarGrid.appendChild(dayCell);
                 loopDate.setDate(loopDate.getDate() + 1);
             }
@@ -351,10 +406,20 @@
         }
 
         function buildDayCellContent(dayCell, dateKey, dayNum) {
+            const dateObj = new Date(dateKey + 'T12:00:00');
+            const dayOfWeek = dateObj.getDay();
             const dayType = getDayType(dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
 
             let htmlContent = `<span class="date-number">${dayNum}</span><div class="day-type">${dayType}</div>`;
+            
+            // Silver/Blue Weekend Label (Saturdays only)
+            if (dayOfWeek === 6) { // 6 = Saturday
+                const isSilver = silverDays.includes(dateKey);
+                const labelText = isSilver ? "Silver Weekend" : "Blue Weekend";
+                htmlContent += `<div class="weekend-label">${labelText}</div>`;
+            }
+
             htmlContent += `<div class="day-content">`;
 
             if (isNoSchool) {
@@ -393,6 +458,7 @@
                 if (!targetEl) return;
                 const evts = eventsByTarget[targetId];
                 
+                // Overflow logic for Month View
                 if (currentView === 'month' && evts.length > 2) {
                     const chip = createEventChip(evts[0]);
                     targetEl.appendChild(chip);
@@ -410,6 +476,7 @@
             const chip = document.createElement('div');
             chip.className = 'event-chip';
             
+            // SSoC Styling
             if (evt.name === "Special Schedule of Calls") {
                 chip.style.background = "white";
                 chip.style.color = "black";
@@ -483,12 +550,26 @@
 
             if (isEditMode) {
                 els.dayViewEditControls.style.display = 'flex';
-                els.noSchoolCheck.checked = isNoSchoolDay(dateKey);
-                const existingSSOC = events.find(e => e.date === dateKey && e.name === "Special Schedule of Calls");
-                els.ssocCheck.checked = !!existingSSOC;
+                
+                // Logic: Saturday vs Normal Day
+                const d = new Date(dateKey + 'T12:00:00');
+                const isSaturday = (d.getDay() === 6);
+
+                if (isSaturday) {
+                    els.standardControls.style.display = 'none';
+                    els.saturdayControls.style.display = 'flex';
+                    els.silverCheck.checked = silverDays.includes(dateKey);
+                } else {
+                    els.standardControls.style.display = 'flex';
+                    els.saturdayControls.style.display = 'none';
+                    els.noSchoolCheck.checked = isNoSchoolDay(dateKey);
+                    const existingSSOC = events.find(e => e.date === dateKey && e.name === "Special Schedule of Calls");
+                    els.ssocCheck.checked = !!existingSSOC;
+                }
                 
                 els.dayViewAddBtn.onclick = () => { els.dayViewModal.style.display = 'none'; openAddModal(dateKey); };
                 
+                // HANDLERS
                 els.noSchoolCheck.onclick = async () => {
                     const isNS = els.noSchoolCheck.checked;
                     try {
@@ -520,6 +601,20 @@
                             }
                         }
                         await loadData();
+                    } catch(e) { alert("Error saving: " + e.message); }
+                };
+
+                els.silverCheck.onclick = async () => {
+                    const isSilver = els.silverCheck.checked;
+                    try {
+                        if (isSilver) {
+                            await setDoc(doc(db, "silverDays", dateKey), { active: true });
+                            silverDays.push(dateKey);
+                        } else {
+                            await deleteDoc(doc(db, "silverDays", dateKey));
+                            silverDays = silverDays.filter(d => d !== dateKey);
+                        }
+                        renderCalendar();
                     } catch(e) { alert("Error saving: " + e.message); }
                 };
 
@@ -584,10 +679,15 @@
             els.dayViewModal.style.display = 'flex';
         }
 
+        // --- ADD/EDIT MODAL LOGIC ---
+
         function openAddModal(dateStr, eventToEdit = null) {
             els.eventName.value = ''; els.eventLocation.value = ''; els.startTime.value = ''; els.endTime.value = ''; els.eventNotes.value = '';
             els.allClassesCheck.checked = false; classChecks.forEach(cb => cb.checked = false);
             els.customTimeCheck.checked = false;
+            
+            // Set Default Mandatory to TRUE
+            els.mandatoryCheck.checked = true; 
             
             if (eventToEdit) {
                 editingEventId = eventToEdit.id;
@@ -599,6 +699,11 @@
                 els.eventLocation.value = eventToEdit.location || '';
                 els.eventNotes.value = eventToEdit.notes || '';
                 
+                // Load Mandatory State (if exists, otherwise true)
+                if (eventToEdit.hasOwnProperty('mandatory')) {
+                    els.mandatoryCheck.checked = eventToEdit.mandatory;
+                }
+
                 if(eventToEdit.classes) {
                     eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; });
                     if(eventToEdit.classes.length === 4) els.allClassesCheck.checked = true;
@@ -715,7 +820,8 @@
                 period: isNoSchool ? 'weekend' : els.eventPeriod.value,
                 startTime: hasTimeframe ? els.startTime.value : null, 
                 endTime: hasTimeframe ? els.endTime.value : null, 
-                classes: selectedClasses 
+                classes: selectedClasses,
+                mandatory: els.mandatoryCheck.checked // Save Mandatory Status
             };
 
             els.saveEventBtn.innerText = "Saving...";
