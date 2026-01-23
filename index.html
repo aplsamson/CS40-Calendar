@@ -11,7 +11,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body { background-color: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; width: 100%; min-height: 100vh; }
         
-        /* TOP LAYOUT */
+        /* LAYOUT */
         .top-container { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; max-width: 1400px; margin-bottom: 30px; min-height: 110px; }
         .main-header { display: flex; align-items: center; background-color: white; padding: 15px 30px; border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10; }
         .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
@@ -19,23 +19,12 @@
         
         .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
         
-        /* HEADER ACTIONS RIGHT */
         .header-actions-right { 
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
-            display: flex; 
-            flex-direction: row; /* Horizontal layout: Filter | Stack */
-            align-items: center; /* Center filter button relative to stack */
-            gap: 12px; 
-            z-index: 20; 
+            display: flex; flex-direction: row; align-items: center; gap: 12px; z-index: 20; 
         }
 
-        /* NEW STACK FOR EDIT/ADD BUTTONS */
-        .action-buttons-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-items: flex-end; /* Right align buttons */
-        }
+        .action-buttons-stack { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
         
         .clean-mode-legend { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: none; background: white; padding: 15px 20px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); gap: 8px; flex-direction: column; align-items: flex-start; z-index: 20; min-width: 120px; }
         .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: bold; color: #555; width: 100%; }
@@ -51,21 +40,16 @@
         .edit-mode-btn:hover { background-color: #e0e0e0; }
         .edit-mode-btn.active { background-color: #d9534f; color: white; border: none; box-shadow: 0 2px 5px rgba(217, 83, 79, 0.4); }
         
-        /* FILTER BUTTON */
         .filter-btn { 
             background-color: white; color: #333; border: 1px solid #ccc; 
-            width: 40px; height: 40px; padding: 0;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; 
-            cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            flex-shrink: 0;
+            width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0;
         }
         .filter-btn:hover { background-color: #f0f0f0; }
         .filter-btn svg { width: 20px; height: 20px; fill: #555; }
         .filter-btn.active-filter { border-color: #003087; background-color: #eef4ff; }
         .filter-btn.active-filter svg { fill: #003087; }
 
-        /* CALENDAR */
         .calendar-container { width: 100%; max-width: 1400px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; border-top: 2px solid black; border-left: 2px solid black; }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #003087; color: white; border-right: 2px solid black; border-bottom: 2px solid black; }
         .calendar-header.hidden { display: none; }
@@ -110,7 +94,11 @@
         
         .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
         .modal-actions { display: flex; gap: 10px; }
-        .mandatory-toggle { display: flex; align-items: center; gap: 8px; font-weight: bold; color: #d9534f; cursor: pointer; }
+        
+        /* Updated Toggle Styling for Footer */
+        .footer-toggles { display: flex; gap: 15px; align-items: center; }
+        .footer-toggle-label { display: flex; align-items: center; gap: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+        
         .btn-cancel { background: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-save { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 
@@ -176,7 +164,6 @@
             <button id="filterBtn" class="filter-btn" title="Filter Events">
                 <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
             </button>
-            
             <div class="action-buttons-stack">
                 <button id="editModeBtn" class="header-btn edit-mode-btn">Edit Mode</button>
                 <button id="addEventBtn" class="header-btn add-event-btn-main">+ Add Event</button>
@@ -234,8 +221,16 @@
             <div class="form-group" id="timeframeGroup" style="display:none;"><label>Timeframe</label><div class="time-inputs"><input type="time" id="startTime" class="form-control"><span style="align-self:center;">to</span><input type="time" id="endTime" class="form-control"></div></div>
             <div class="form-group"><label>Class Attendance</label><div class="checkbox-group"><label class="checkbox-all"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
             <div class="form-group"><label>Notes</label><textarea id="eventNotes" class="form-control" placeholder="Optional details..."></textarea></div>
+            
             <div class="modal-footer">
-                <label class="mandatory-toggle"><input type="checkbox" id="mandatoryCheck" checked> Mandatory</label>
+                <div class="footer-toggles">
+                    <label class="footer-toggle-label" style="color: #555;">
+                        <input type="checkbox" id="tentativeCheck"> Tentative
+                    </label>
+                    <label class="footer-toggle-label" style="color: #d9534f;">
+                        <input type="checkbox" id="mandatoryCheck" checked> Mandatory
+                    </label>
+                </div>
                 <div class="modal-actions" style="margin-top: 0;">
                     <button id="cancelBtn" class="btn-cancel">Cancel</button>
                     <button id="saveEventBtn" class="btn-save">Save</button>
@@ -305,7 +300,7 @@
          'customTimeCheck','customTimeCheckContainer','allClassesCheck','dayViewModal','closeDayView',
          'dayViewDateDisplay','dayViewTypeDisplay','dayViewList','dayViewAddBtn','dayViewEditControls',
          'ssocCheck','noSchoolCheck', 'pinModal', 'pinInput', 'cancelPinBtn', 'submitPinBtn',
-         'mandatoryCheck', 'standardControls', 'saturdayControls', 'silverCheck',
+         'mandatoryCheck', 'tentativeCheck', 'standardControls', 'saturdayControls', 'silverCheck',
          'filterBtn', 'filterModal', 'filterMandatoryCheck', 'clearFiltersBtn', 'closeFilterBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
@@ -350,15 +345,20 @@
             return (d.getDay() === 0 || d.getDay() === 6) || isNoSchoolDay(dateStr);
         }
 
+        function getChipColor(cls) {
+            const colors = { '26': '#d9534f', '27': '#FFD700', '28': '#003087', '29': '#C0C0C0' };
+            return colors[cls] || 'black';
+        }
+
         function getChipBackground(classes) {
             if (!classes || classes.length === 0 || classes.length === 4) return 'black';
-            const colors = { '26': '#d9534f', '27': '#FFD700', '28': '#003087', '29': '#C0C0C0' };
-            if (classes.length === 1) return colors[classes[0]] || 'black';
+            if (classes.length === 1) return getChipColor(classes[0]);
+            
             const sortedClasses = [...classes].sort();
             const segmentSize = 100 / sortedClasses.length;
             let gradientParts = [];
             sortedClasses.forEach((cls, index) => {
-                const color = colors[cls];
+                const color = getChipColor(cls);
                 const start = index * segmentSize;
                 const end = (index + 1) * segmentSize;
                 gradientParts.push(`${color} ${start}% ${end}%`);
@@ -500,9 +500,15 @@
                     return tA.localeCompare(tB);
                 });
 
-                if (currentView === 'month' && evts.length > 2) {
-                    const chip = createEventChip(evts[0]);
-                    targetEl.appendChild(chip);
+                // OVERFLOW LIMIT CHECK
+                // Weekends/No School get 6 slots, Normal days get 2.
+                const isExtendedView = targetId.includes('weekend');
+                const limit = isExtendedView ? 6 : 2;
+
+                if (currentView === 'month' && evts.length > limit) {
+                    const shownEvents = evts.slice(0, limit);
+                    shownEvents.forEach(evt => { targetEl.appendChild(createEventChip(evt)); });
+                    
                     const dotDiv = document.createElement('div');
                     dotDiv.className = 'more-events-indicator';
                     dotDiv.innerText = '...';
@@ -516,20 +522,42 @@
         function createEventChip(evt) {
             const chip = document.createElement('div');
             chip.className = 'event-chip';
+            
+            // Name handling (add * for tentative)
+            let displayText = evt.name + (evt.tentative ? "*" : "");
+
             if (evt.name === "Special Schedule of Calls") {
                 chip.style.background = "white"; chip.style.color = "black"; chip.style.textAlign = "center"; chip.style.border = "1px solid #ccc"; chip.style.fontWeight = "bold"; 
                 chip.style.padding = "1px 4px"; // Fixed Sizing
-                chip.innerText = evt.name; return chip;
+                chip.innerText = displayText; return chip;
             }
+
             if (currentView === 'month') {
-                chip.innerText = evt.name;
+                chip.innerText = displayText;
             } else {
-                let content = `<span style="font-weight:bold; display:block;">${evt.name}</span>`;
+                let content = `<span style="font-weight:bold; display:block;">${displayText}</span>`;
                 if (evt.startTime) content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}${evt.endTime ? '-' + evt.endTime : ''}</span>`;
                 if (evt.location) content += `<span style="display:block; font-size:0.85em; font-style:italic; opacity:0.9;">${evt.location}</span>`;
                 chip.innerHTML = content;
             }
-            chip.style.background = getChipBackground(evt.classes);
+
+            // TENTATIVE STYLING
+            if (evt.tentative) {
+                chip.style.backgroundColor = "white";
+                chip.style.color = "black";
+                // Determine Border Color
+                if (!evt.classes || evt.classes.length === 0 || evt.classes.length === 4) {
+                    chip.style.border = "2px solid black";
+                } else if (evt.classes.length === 1) {
+                    chip.style.border = "2px solid " + getChipColor(evt.classes[0]);
+                } else {
+                    // Multiple classes: default to black for outline mode to keep it simple/readable
+                    chip.style.border = "2px solid #333";
+                }
+            } else {
+                chip.style.background = getChipBackground(evt.classes);
+            }
+            
             return chip;
         }
 
@@ -641,9 +669,10 @@
                     let timeDisplay = evt.startTime ? (evt.startTime + (evt.endTime ? ` - ${evt.endTime}` : '')) : (periodNames[evt.period] || 'Other');
                     let locationHtml = evt.location ? `<p><strong>Location:</strong> ${evt.location}</p>` : "";
                     
-                    // REMOVED (Mandatory) Text from display
-                    let leftCol = `<div class="day-view-info"><h4>${evt.name}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
-                    
+                    // Name handling for list view
+                    let nameDisplay = evt.name + (evt.tentative ? "*" : "");
+
+                    let leftCol = `<div class="day-view-info"><h4>${nameDisplay}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
                     if (isEditMode) leftCol += `<button class="action-btn-sm edit-btn" style="display:inline-block;">Edit</button><button class="action-btn-sm delete-btn" style="display:inline-block;">Delete</button>`;
                     leftCol += `</div>`;
                     let rightCol = (evt.notes && evt.notes.trim()) ? `<div class="day-view-notes"><strong>Notes:</strong>${evt.notes}</div>` : "";
@@ -661,13 +690,17 @@
 
         function openAddModal(dateStr, eventToEdit = null) {
             els.eventName.value = ''; els.eventLocation.value = ''; els.startTime.value = ''; els.endTime.value = ''; els.eventNotes.value = '';
-            els.allClassesCheck.checked = false; classChecks.forEach(cb => cb.checked = false); els.customTimeCheck.checked = false; els.mandatoryCheck.checked = true;
+            els.allClassesCheck.checked = false; classChecks.forEach(cb => cb.checked = false); els.customTimeCheck.checked = false; 
+            els.mandatoryCheck.checked = true; els.tentativeCheck.checked = false;
             
             if (eventToEdit) {
                 editingEventId = eventToEdit.id;
                 els.modalTitle.innerText = "Edit Event"; els.saveEventBtn.innerText = "Update Event";
                 els.eventDate.value = eventToEdit.date; els.eventName.value = eventToEdit.name; els.eventLocation.value = eventToEdit.location || ''; els.eventNotes.value = eventToEdit.notes || '';
+                
                 if (eventToEdit.hasOwnProperty('mandatory')) els.mandatoryCheck.checked = eventToEdit.mandatory;
+                if (eventToEdit.hasOwnProperty('tentative')) els.tentativeCheck.checked = eventToEdit.tentative;
+
                 if(eventToEdit.classes) { eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; }); if(eventToEdit.classes.length === 4) els.allClassesCheck.checked = true; }
                 const isNoSchool = isWeekendOrNoSchool(eventToEdit.date);
                 if (isNoSchool) { els.startTime.value = eventToEdit.startTime || ''; els.endTime.value = eventToEdit.endTime || ''; } 
@@ -703,7 +736,14 @@
             const date = els.eventDate.value; const name = els.eventName.value; if (!date || !name) { alert("Please fill in Date and Event Name"); return; }
             const selectedClasses = []; document.querySelectorAll('.class-check:checked').forEach(cb => selectedClasses.push(cb.value));
             const isNoSchool = isWeekendOrNoSchool(date); const hasTimeframe = isNoSchool || els.eventPeriod.value === 'other' || els.customTimeCheck.checked;
-            const eventData = { date, name, location: els.eventLocation.value, notes: els.eventNotes.value, period: isNoSchool ? 'weekend' : els.eventPeriod.value, startTime: hasTimeframe ? els.startTime.value : null, endTime: hasTimeframe ? els.endTime.value : null, classes: selectedClasses, mandatory: els.mandatoryCheck.checked };
+            const eventData = { 
+                date, name, location: els.eventLocation.value, notes: els.eventNotes.value, 
+                period: isNoSchool ? 'weekend' : els.eventPeriod.value, 
+                startTime: hasTimeframe ? els.startTime.value : null, endTime: hasTimeframe ? els.endTime.value : null, 
+                classes: selectedClasses, 
+                mandatory: els.mandatoryCheck.checked,
+                tentative: els.tentativeCheck.checked 
+            };
             els.saveEventBtn.innerText = "Saving...";
             try { if (editingEventId) await updateDoc(doc(db, "events", editingEventId), eventData); else await addDoc(collection(db, "events"), eventData); await loadData(); els.eventModal.style.display = 'none'; } catch (e) { alert("Error saving event: " + e.message); } finally { els.saveEventBtn.innerText = "Save"; }
         });
