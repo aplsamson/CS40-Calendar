@@ -11,14 +11,22 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body { background-color: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; width: 100%; min-height: 100vh; }
         
-        /* TOP LAYOUT */
+        /* LAYOUT */
         .top-container { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; max-width: 1400px; margin-bottom: 30px; min-height: 110px; }
         .main-header { display: flex; align-items: center; background-color: white; padding: 15px 30px; border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10; }
         .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
         .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
         .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
-        .header-actions-right { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 20; }
+        
+        /* RIGHT ACTIONS STACKING FIX */
+        .header-actions-right { 
+            position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
+            display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 20; 
+        }
+        .header-top-row {
+            display: flex; gap: 10px; align-items: center;
+        }
         
         .clean-mode-legend { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: none; background: white; padding: 15px 20px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); gap: 8px; flex-direction: column; align-items: flex-start; z-index: 20; min-width: 120px; }
         .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: bold; color: #555; width: 100%; }
@@ -39,10 +47,8 @@
             background-color: white; color: #333; border: 1px solid #ccc; 
             width: 40px; height: 40px; padding: 0;
             display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; /* Circle */
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 50%; 
+            cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .filter-btn:hover { background-color: #f0f0f0; }
         .filter-btn svg { width: 20px; height: 20px; fill: #555; }
@@ -137,6 +143,19 @@
 </head>
 <body>
 
+    <div id="pinModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 300px;">
+            <h3 class="modal-title">Enter Admin PIN</h3>
+            <div class="form-group">
+                <input type="password" id="pinInput" class="form-control" placeholder="PIN Code">
+            </div>
+            <div class="modal-actions">
+                <button id="cancelPinBtn" class="btn-cancel">Cancel</button>
+                <button id="submitPinBtn" class="btn-save">Unlock</button>
+            </div>
+        </div>
+    </div>
+
     <div class="top-container">
         <div class="header-actions-left" id="headerActionsLeft"><button id="weekViewBtn" class="header-btn week-view-btn">Week View</button></div>
         <div class="main-header">
@@ -144,13 +163,13 @@
             <h1 class="header-title" id="mainHeaderTitle">CS40 Calendar</h1>
         </div>
         <div class="header-actions-right" id="headerActionsRight">
-            <div style="display: flex; gap: 10px; align-items: center; position: relative;">
+            <div class="header-top-row">
                 <button id="filterBtn" class="filter-btn" title="Filter Events">
                     <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
                 </button>
-                <button id="addEventBtn" class="header-btn add-event-btn-main">+ Add Event</button>
                 <button id="editModeBtn" class="header-btn edit-mode-btn">Edit Mode</button>
             </div>
+            <button id="addEventBtn" class="header-btn add-event-btn-main">+ Add Event</button>
         </div>
         <div class="clean-mode-legend" id="cleanModeLegend">
             <div class="legend-item"><div class="legend-dot" style="background: #d9534f;"></div> 26ers</div>
@@ -166,19 +185,6 @@
             <button id="prevBtn" class="nav-btn">&lt;</button> <h2 id="monthYear">Month Year</h2> <button id="nextBtn" class="nav-btn">&gt;</button>
         </header>
         <div class="calendar-grid" id="calendarGrid"></div>
-    </div>
-
-    <div id="pinModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 300px;">
-            <h3 class="modal-title">Enter Admin PIN</h3>
-            <div class="form-group">
-                <input type="password" id="pinInput" class="form-control" placeholder="PIN Code">
-            </div>
-            <div class="modal-actions">
-                <button id="cancelPinBtn" class="btn-cancel">Cancel</button>
-                <button id="submitPinBtn" class="btn-save">Unlock</button>
-            </div>
-        </div>
     </div>
 
     <div id="filterModal" class="modal-overlay">
@@ -277,7 +283,6 @@
         let currentView = 'month';
         let editingEventId = null;
         
-        // Filter State
         const filterState = { classes: [], mandatoryOnly: false };
 
         // --- DOM Elements ---
@@ -601,7 +606,7 @@
                     let timeDisplay = evt.startTime ? (evt.startTime + (evt.endTime ? ` - ${evt.endTime}` : '')) : (periodNames[evt.period] || 'Other');
                     let locationHtml = evt.location ? `<p><strong>Location:</strong> ${evt.location}</p>` : "";
                     
-                    let leftCol = `<div class="day-view-info"><h4>${evt.name} ${evt.mandatory ? '<span style="color:#d9534f; font-size:0.8em;">(Mandatory)</span>' : ''}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
+                    let leftCol = `<div class="day-view-info"><h4>${evt.name}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
                     if (isEditMode) leftCol += `<button class="action-btn-sm edit-btn" style="display:inline-block;">Edit</button><button class="action-btn-sm delete-btn" style="display:inline-block;">Delete</button>`;
                     leftCol += `</div>`;
                     let rightCol = (evt.notes && evt.notes.trim()) ? `<div class="day-view-notes"><strong>Notes:</strong>${evt.notes}</div>` : "";
