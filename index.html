@@ -23,17 +23,18 @@
         .header-actions-right { 
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
             display: flex; 
-            flex-direction: row; 
-            align-items: center; 
+            flex-direction: row; /* Horizontal layout: Filter | Stack */
+            align-items: center; /* Center filter button relative to stack */
             gap: 12px; 
             z-index: 20; 
         }
 
+        /* NEW STACK FOR EDIT/ADD BUTTONS */
         .action-buttons-stack {
             display: flex;
             flex-direction: column;
             gap: 5px;
-            align-items: flex-end; 
+            align-items: flex-end; /* Right align buttons */
         }
         
         .clean-mode-legend { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: none; background: white; padding: 15px 20px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); gap: 8px; flex-direction: column; align-items: flex-start; z-index: 20; min-width: 120px; }
@@ -476,13 +477,10 @@
             filteredEvents.forEach(evt => {
                 let targetId;
                 const isNoSchool = isWeekendOrNoSchool(evt.date);
-                // FORCE SSoC to Top
-                if (evt.name === "Special Schedule of Calls") {
-                    if (isNoSchool) targetId = `cell-${evt.date}-weekend`;
-                    else targetId = `cell-${evt.date}-preflight`; 
+                if (isNoSchool) {
+                    targetId = `cell-${evt.date}-weekend`;
                 } else {
-                    if (isNoSchool) { targetId = `cell-${evt.date}-weekend`; } 
-                    else { targetId = `cell-${evt.date}-${evt.period}`; }
+                    targetId = `cell-${evt.date}-${evt.period}`;
                 }
                 if (!eventsByTarget[targetId]) eventsByTarget[targetId] = [];
                 eventsByTarget[targetId].push(evt);
@@ -643,7 +641,9 @@
                     let timeDisplay = evt.startTime ? (evt.startTime + (evt.endTime ? ` - ${evt.endTime}` : '')) : (periodNames[evt.period] || 'Other');
                     let locationHtml = evt.location ? `<p><strong>Location:</strong> ${evt.location}</p>` : "";
                     
+                    // REMOVED (Mandatory) Text from display
                     let leftCol = `<div class="day-view-info"><h4>${evt.name}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
+                    
                     if (isEditMode) leftCol += `<button class="action-btn-sm edit-btn" style="display:inline-block;">Edit</button><button class="action-btn-sm delete-btn" style="display:inline-block;">Delete</button>`;
                     leftCol += `</div>`;
                     let rightCol = (evt.notes && evt.notes.trim()) ? `<div class="day-view-notes"><strong>Notes:</strong>${evt.notes}</div>` : "";
