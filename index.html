@@ -243,23 +243,22 @@
             pointer-events: none;
         }
 
-        /* INCREASED PADDING HERE */
+        /* REVERTED PADDING (Standard) */
         .day-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding-top: 30px; 
+            padding-top: 25px; 
             height: 100%;
         }
 
-        /* INCREASED PADDING/MARGIN HERE */
+        /* REVERTED PADDING (Standard) */
         .day-section {
             flex: 1; 
             border-bottom: 1px dotted #999;
             width: 100%;
             font-size: 0.75rem;
-            padding: 4px 2px;
-            margin-bottom: 4px;
+            padding: 1px 2px;
             overflow: hidden;
             position: relative; 
         }
@@ -279,13 +278,13 @@
             text-transform: uppercase;
         }
 
-        /* INCREASED MARGIN HERE */
+        /* REVERTED MARGIN (Standard) */
         .event-chip {
             display: block;
             color: white;
             padding: 2px 4px;
             border-radius: 3px;
-            margin-bottom: 4px; 
+            margin-bottom: 2px; 
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -467,7 +466,7 @@
             font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
-            margin-bottom: 10px; /* Space below the button */
+            margin-bottom: 10px; 
             width: 100%;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -860,7 +859,6 @@
             const chip = document.createElement('div');
             chip.className = 'event-chip';
             
-            // SPECIAL SSOC STYLING
             if (evt.name === "Special Schedule of Calls") {
                 chip.style.background = "white";
                 chip.style.color = "black";
@@ -937,7 +935,7 @@
                             id: Date.now(),
                             date: dateKey,
                             name: "Special Schedule of Calls",
-                            period: "other", // MOVED TO OTHER
+                            period: "other", 
                             classes: [] 
                         };
                         events.push(newEvent);
