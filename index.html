@@ -7,9 +7,7 @@
     
     <style>
         /* --- GLOBAL SCALING FIX --- */
-        html {
-            font-size: 14px; 
-        }
+        html { font-size: 14px; }
 
         * {
             box-sizing: border-box;
@@ -40,7 +38,6 @@
             min-height: 110px; 
         }
 
-        /* --- MAIN HEADER PILL --- */
         .main-header {
             display: flex;
             align-items: center;
@@ -144,31 +141,15 @@
         }
         .header-btn:active { transform: scale(0.98); }
 
-        .week-view-btn {
-            background-color: #003087;
-            color: white;
-        }
+        .week-view-btn { background-color: #003087; color: white; }
         .week-view-btn:hover { background-color: #001e54; }
 
-        .add-event-btn-main {
-            background-color: #003087;
-            color: white;
-            display: none; 
-        }
+        .add-event-btn-main { background-color: #003087; color: white; display: none; }
         .add-event-btn-main:hover { background-color: #001e54; }
 
-        .edit-mode-btn {
-            background-color: #f0f0f0;
-            color: #333;
-            border: 1px solid #ccc;
-        }
+        .edit-mode-btn { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
         .edit-mode-btn:hover { background-color: #e0e0e0; }
-        .edit-mode-btn.active {
-            background-color: #d9534f;
-            color: white;
-            border: none;
-            box-shadow: 0 2px 5px rgba(217, 83, 79, 0.4);
-        }
+        .edit-mode-btn.active { background-color: #d9534f; color: white; border: none; box-shadow: 0 2px 5px rgba(217, 83, 79, 0.4); }
         .edit-mode-btn.active:hover { background-color: #c9302c; }
 
         /* --- CALENDAR --- */
@@ -194,9 +175,7 @@
             border-bottom: 2px solid black;
             transition: height 0.3s, padding 0.3s, opacity 0.3s;
         }
-        .calendar-header.hidden {
-            display: none;
-        }
+        .calendar-header.hidden { display: none; }
 
         .nav-btn {
             background: none;
@@ -239,10 +218,7 @@
         }
         .day-cell:hover { background-color: #f0f8ff; }
         
-        .day-cell.week-view {
-            height: auto;
-            min-height: 500px; 
-        }
+        .day-cell.week-view { height: auto; min-height: 500px; }
 
         .date-number {
             position: absolute;
@@ -284,11 +260,7 @@
             overflow: hidden;
             position: relative; 
         }
-        .day-cell.week-view .day-section {
-            height: auto;
-            flex: 1;
-            min-height: 80px;
-        }
+        .day-cell.week-view .day-section { height: auto; flex: 1; min-height: 80px; }
         .day-section:last-child { border-bottom: none; }
 
         .day-section::after {
@@ -339,10 +311,7 @@
             padding-bottom: 2px;
         }
 
-        .day-cell.inactive {
-            background-color: #eee;
-            cursor: default;
-        }
+        .day-cell.inactive { background-color: #eee; cursor: default; }
 
         /* --- MODAL --- */
         .modal-overlay {
@@ -358,6 +327,7 @@
             align-items: center;
         }
 
+        /* SCROLLING FIX HERE */
         .modal-content {
             background: white;
             padding: 25px;
@@ -366,7 +336,10 @@
             max-width: 90%;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
-            min-height: 200px; 
+            
+            /* Enable Scrolling if Content is Tall */
+            max-height: 85vh; 
+            overflow-y: auto; 
         }
 
         .close-modal-btn {
@@ -425,7 +398,6 @@
         }
         
         .day-view-info { flex: 1; }
-        
         .day-view-notes {
             flex: 1;
             border-left: 1px solid #ddd;
@@ -452,7 +424,6 @@
         .edit-btn { background-color: #f0ad4e; color: white; }
         .delete-btn { background-color: #ff4d4f; color: white; }
 
-        /* FAB Position */
         .day-view-add-btn {
             position: absolute;
             bottom: 20px;
@@ -474,13 +445,12 @@
         }
         .day-view-add-btn:hover { background-color: #001e54; }
         
-        /* BOTTOM LEFT TOGGLES CONTAINER */
         .day-view-toggles {
             position: absolute;
             bottom: 20px;
             left: 25px;
-            display: none; /* Hidden unless in edit mode */
-            gap: 20px; /* Horizontal space between items */
+            display: none; 
+            gap: 20px; 
             align-items: center;
         }
 
@@ -494,14 +464,10 @@
             font-size: 0.95rem;
         }
         
-        /* Specific colors for toggle labels */
         .label-ssoc { color: #003087; }
         .label-noschool { color: #d9534f; }
 
-        .toggle-item input {
-            transform: scale(1.2);
-            cursor: pointer;
-        }
+        .toggle-item input { transform: scale(1.2); cursor: pointer; }
         
         .force-hide { display: none !important; }
         .force-show-flex { display: flex !important; }
@@ -513,17 +479,14 @@
         <div class="header-actions-left" id="headerActionsLeft">
             <button id="weekViewBtn" class="header-btn week-view-btn">Week View</button>
         </div>
-
         <div class="main-header">
             <img src="https://www.aviatorgear.com/images/product/large/39950.jpg" alt="CS40 Logo" class="header-logo" id="mainHeaderLogo" title="Double Click to Toggle Clean Mode">
             <h1 class="header-title" id="mainHeaderTitle">CS40 Calendar</h1>
         </div>
-        
         <div class="header-actions-right" id="headerActionsRight">
             <button id="addEventBtn" class="header-btn add-event-btn-main">+ Add Event</button>
             <button id="editModeBtn" class="header-btn edit-mode-btn">Edit Mode</button>
         </div>
-
         <div class="clean-mode-legend" id="cleanModeLegend">
             <div class="legend-item"><div class="legend-dot" style="background: #d9534f;"></div> 26ers</div>
             <div class="legend-item"><div class="legend-dot" style="background: #FFD700;"></div> 27ers</div>
@@ -553,7 +516,7 @@
 
             <div class="form-group">
                 <label>Event Name</label>
-                <input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Briefs">
+                <input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Brief">
             </div>
 
             <div class="form-group">
@@ -569,6 +532,12 @@
                     <option value="m5" id="opt-m5">M5</option>
                     <option value="other">Other</option>
                 </select>
+            </div>
+
+            <div class="form-group" id="customTimeCheckContainer">
+                <label style="font-weight: normal; cursor:pointer;">
+                    <input type="checkbox" id="customTimeCheck"> Enable Custom Time
+                </label>
             </div>
 
             <div class="form-group" id="timeframeGroup" style="display:none;">
@@ -657,6 +626,8 @@
         const timeframeGroup = document.getElementById('timeframeGroup');
         const startTimeInput = document.getElementById('startTime');
         const endTimeInput = document.getElementById('endTime');
+        const customTimeCheck = document.getElementById('customTimeCheck');
+        const customTimeCheckContainer = document.getElementById('customTimeCheckContainer');
         const allClassesCheck = document.getElementById('allClassesCheck');
         const classChecks = document.querySelectorAll('.class-check');
         
@@ -821,7 +792,6 @@
             htmlContent += `<div class="day-content">`;
 
             if (isNoSchool) {
-                // FIXED: Removed align-items:center; to force stretch (full width)
                 htmlContent += `<div class="day-section" style="border:none; height:100%; display:flex; flex-direction:column; justify-content:center;" id="cell-${dateKey}-weekend"></div>`;
             } else if (dayType.startsWith('T')) {
                 htmlContent += `
@@ -880,6 +850,18 @@
         function createEventChip(evt) {
             const chip = document.createElement('div');
             chip.className = 'event-chip';
+            
+            // SPECIAL SSOC STYLING
+            if (evt.name === "Special Schedule of Calls") {
+                chip.style.background = "white";
+                chip.style.color = "black";
+                chip.style.textAlign = "center";
+                chip.style.border = "1px solid #ccc";
+                chip.style.fontWeight = "bold";
+                chip.innerText = evt.name;
+                return chip;
+            }
+
             if (currentView === 'month') {
                 chip.innerText = `${evt.name}`;
             } else {
@@ -887,10 +869,8 @@
                 if (evt.startTime && evt.endTime) { 
                     content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}-${evt.endTime}</span>`; 
                 } else if (evt.startTime) {
-                    // Start time only
                     content += `<span style="display:block; font-size:0.85em; opacity:0.9;">${evt.startTime}</span>`; 
                 }
-                
                 if (evt.location) { content += `<span style="display:block; font-size:0.85em; font-style:italic; opacity:0.9;">${evt.location}</span>`; }
                 chip.innerHTML = content;
             }
@@ -927,13 +907,11 @@
                 dayViewToggles.style.display = 'flex';
                 
                 noSchoolCheck.checked = isNoSchoolDay(dateKey);
-                // Check if SSOC event exists
                 const existingSSOC = events.find(e => e.date === dateKey && e.name === "Special Schedule of Calls");
                 ssocCheck.checked = !!existingSSOC;
                 
                 dayViewAddBtn.onclick = () => { dayViewModal.style.display = 'none'; openAddModal(dateKey); };
                 
-                // NO SCHOOL Logic
                 noSchoolCheck.onclick = () => {
                     const isNS = noSchoolCheck.checked;
                     if(isNS) {
@@ -945,25 +923,22 @@
                     renderCalendar(); 
                 };
 
-                // SSOC Logic
                 ssocCheck.onclick = () => {
                     if (ssocCheck.checked) {
-                        // Create SSOC event
                         const newEvent = {
                             id: Date.now(),
                             date: dateKey,
                             name: "Special Schedule of Calls",
-                            period: "other", // Puts it at top of list
-                            classes: [] // Default All
+                            period: "other", 
+                            classes: [] 
                         };
                         events.push(newEvent);
                     } else {
-                        // Remove SSOC event
                         events = events.filter(e => !(e.date === dateKey && e.name === "Special Schedule of Calls"));
                     }
                     localStorage.setItem('cs40_events', JSON.stringify(events));
-                    openDayView(dateKey, dayType); // Refresh list
-                    renderCalendar(); // Refresh background
+                    openDayView(dateKey, dayType); 
+                    renderCalendar(); 
                 };
 
             } else {
@@ -991,7 +966,6 @@
                     let attendanceStr;
                     if (evt.classes.length === 0 || evt.classes.length === 4) { attendanceStr = 'All'; } else { attendanceStr = evt.classes.join(', '); }
                     
-                    // Time Logic
                     let timeDisplay = "";
                     if (evt.startTime && evt.endTime) { 
                         timeDisplay = `${evt.startTime} - ${evt.endTime}`; 
@@ -1035,9 +1009,12 @@
 
         addEventBtn.addEventListener('click', () => { const todayStr = getFormattedDate(new Date()); openAddModal(todayStr); });
 
+        customTimeCheck.addEventListener('change', () => { updateModalOptions(eventDateInput.value); });
+
         function openAddModal(dateStr, eventToEdit = null) {
             eventNameInput.value = ''; eventLocationInput.value = ''; startTimeInput.value = ''; endTimeInput.value = ''; eventNotesInput.value = '';
             allClassesCheck.checked = false; classChecks.forEach(cb => cb.checked = false);
+            customTimeCheck.checked = false; 
             
             if (eventToEdit) {
                 editingEventId = eventToEdit.id;
@@ -1050,16 +1027,19 @@
                 eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; });
                 const allChecked = Array.from(classChecks).every(c => c.checked) && classChecks.length > 0;
                 if(eventToEdit.classes.length === 4) allClassesCheck.checked = true;
-                updateModalOptions(eventToEdit.date);
+                
                 const isNoSchool = isWeekendOrNoSchool(eventToEdit.date);
                 if (isNoSchool) {
                     startTimeInput.value = eventToEdit.startTime || ''; endTimeInput.value = eventToEdit.endTime || '';
                 } else {
                     eventPeriodSelect.value = eventToEdit.period;
-                    if (eventToEdit.period === 'other') {
-                        timeframeGroup.style.display = 'block'; startTimeInput.value = eventToEdit.startTime || ''; endTimeInput.value = eventToEdit.endTime || '';
-                    } else { timeframeGroup.style.display = 'none'; }
+                    if (eventToEdit.period !== 'other' && (eventToEdit.startTime || eventToEdit.endTime)) {
+                        customTimeCheck.checked = true;
+                    }
+                    if (eventToEdit.startTime) startTimeInput.value = eventToEdit.startTime;
+                    if (eventToEdit.endTime) endTimeInput.value = eventToEdit.endTime;
                 }
+                updateModalOptions(eventToEdit.date);
             } else {
                 editingEventId = null; modalTitle.innerText = "Add Event"; saveEventBtn.innerText = "Save";
                 eventDateInput.value = dateStr; updateModalOptions(dateStr); 
@@ -1073,11 +1053,23 @@
         function updateModalOptions(dateStr) {
             const isNoSchool = isWeekendOrNoSchool(dateStr);
             const selectedPeriod = eventPeriodSelect.value;
+            
             if (isNoSchool) {
-                periodGroup.style.display = 'none'; timeframeGroup.style.display = 'block';
+                periodGroup.style.display = 'none'; 
+                timeframeGroup.style.display = 'block';
+                customTimeCheckContainer.style.display = 'none';
             } else {
                 periodGroup.style.display = 'block';
-                if (selectedPeriod === 'other') { timeframeGroup.style.display = 'block'; } else { timeframeGroup.style.display = 'none'; }
+                
+                // Hide checkbox if period is Other (implied custom time)
+                if (selectedPeriod === 'other') {
+                    customTimeCheckContainer.style.display = 'none';
+                    timeframeGroup.style.display = 'block'; 
+                } else {
+                    customTimeCheckContainer.style.display = 'block';
+                    timeframeGroup.style.display = customTimeCheck.checked ? 'block' : 'none'; 
+                }
+                
                 const dayType = getDayType(dateStr);
                 if (dayType.startsWith('T')) {
                     optionM5.style.display = 'none'; if (eventPeriodSelect.value === 'm5') { eventPeriodSelect.value = 'preflight'; }
@@ -1103,8 +1095,10 @@
             const selectedClasses = [];
             document.querySelectorAll('.class-check:checked').forEach(cb => selectedClasses.push(cb.value));
             if (!date || !name) { alert("Please fill in Date and Event Name"); return; }
+            
             const isNoSchool = isWeekendOrNoSchool(date);
-            const hasTimeframe = isNoSchool || period === 'other';
+            const hasTimeframe = isNoSchool || period === 'other' || customTimeCheck.checked;
+            
             const eventData = {
                 id: editingEventId ? editingEventId : Date.now(),
                 date, name, location, notes,
