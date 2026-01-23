@@ -11,19 +11,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body { background-color: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; width: 100%; min-height: 100vh; }
         
-        /* LOGIN OVERLAY */
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            text-align: center;
-        }
-        .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #ddd; max-width: 400px; width: 90%; }
-        .login-btn { background-color: #4285F4; color: white; border: none; padding: 12px 24px; border-radius: 5px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin-top: 20px; transition: background 0.2s; }
-        .login-btn:hover { background-color: #357ae8; }
-        .logout-link { font-size: 0.8rem; color: #d9534f; cursor: pointer; text-decoration: underline; margin-top: 5px; }
-
-        /* Existing Styles */
+        /* TOP LAYOUT */
         .top-container { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; max-width: 1400px; margin-bottom: 30px; min-height: 110px; }
         .main-header { display: flex; align-items: center; background-color: white; padding: 15px 30px; border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10; }
         .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
@@ -46,18 +34,22 @@
         .edit-mode-btn:hover { background-color: #e0e0e0; }
         .edit-mode-btn.active { background-color: #d9534f; color: white; border: none; box-shadow: 0 2px 5px rgba(217, 83, 79, 0.4); }
         
-        /* Filter Button */
+        /* FILTER BUTTON */
         .filter-btn { 
             background-color: white; color: #333; border: 1px solid #ccc; 
             width: 40px; height: 40px; padding: 0;
             display: flex; align-items: center; justify-content: center;
             border-radius: 50%; /* Circle */
-            position: absolute; right: 170px; top: 0; /* Position left of Edit Mode */
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        .filter-btn:hover { background-color: #f0f0f0; }
         .filter-btn svg { width: 20px; height: 20px; fill: #555; }
         .filter-btn.active-filter { border-color: #003087; background-color: #eef4ff; }
         .filter-btn.active-filter svg { fill: #003087; }
 
+        /* CALENDAR */
         .calendar-container { width: 100%; max-width: 1400px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; border-top: 2px solid black; border-left: 2px solid black; }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #003087; color: white; border-right: 2px solid black; border-bottom: 2px solid black; }
         .calendar-header.hidden { display: none; }
@@ -87,7 +79,7 @@
         .day-cell.week-view .event-chip { font-size: 0.9rem; padding: 6px 8px; white-space: normal; line-height: 1.3; margin-bottom: 4px; display: flex; flex-direction: column; }
         .more-events-indicator { font-size: 1.2rem; line-height: 0.5; color: #333; text-align: center; font-weight: bold; padding-bottom: 2px; }
 
-        /* MODAL */
+        /* MODALS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 25px; border-radius: 8px; width: 550px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; max-height: 85vh; overflow-y: auto; }
         .close-modal-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; z-index: 10; }
@@ -145,21 +137,6 @@
 </head>
 <body>
 
-    <div id="loginOverlay">
-        <div class="login-box">
-            <img src="https://www.aviatorgear.com/images/product/large/39950.jpg" style="height: 80px; margin-bottom: 20px;">
-            <h2 style="margin-bottom: 10px; color:#333;">CS40 Calendar</h2>
-            <p style="color:#666; margin-bottom: 20px;">
-                Please sign in with your <strong>@afacademy.af.edu</strong> account.<br>
-                <span style="font-size: 0.8em; color: #888;">(Select "Create Account" -> "Use my current email" if needed)</span>
-            </p>
-            <button id="googleLoginBtn" class="login-btn">
-                <span>Sign in (Link Academy Email)</span>
-            </button>
-            <p id="loginError" style="color: red; margin-top: 15px; display: none;"></p>
-        </div>
-    </div>
-
     <div class="top-container">
         <div class="header-actions-left" id="headerActionsLeft"><button id="weekViewBtn" class="header-btn week-view-btn">Week View</button></div>
         <div class="main-header">
@@ -167,11 +144,6 @@
             <h1 class="header-title" id="mainHeaderTitle">CS40 Calendar</h1>
         </div>
         <div class="header-actions-right" id="headerActionsRight">
-            <div style="text-align: right; margin-bottom: 5px;">
-                <span id="userEmailDisplay" style="font-size: 0.8rem; color: #555; display: block; margin-bottom: 5px;"></span>
-                <span id="logoutBtn" class="logout-link">Sign Out</span>
-            </div>
-            
             <div style="display: flex; gap: 10px; align-items: center; position: relative;">
                 <button id="filterBtn" class="filter-btn" title="Filter Events">
                     <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
@@ -212,7 +184,6 @@
     <div id="filterModal" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title">Filter Events</h3>
-            
             <div class="filter-section">
                 <h4>By Class</h4>
                 <div class="checkbox-group">
@@ -222,14 +193,12 @@
                     <label><input type="checkbox" value="29" class="filter-class-check"> 29</label>
                 </div>
             </div>
-
             <div class="filter-section">
                 <h4>By Type</h4>
                 <div class="checkbox-group">
                     <label><input type="checkbox" id="filterMandatoryCheck"> Mandatory Only</label>
                 </div>
             </div>
-
             <div class="modal-footer">
                 <button id="clearFiltersBtn" class="btn-cancel" style="background: #d9534f; color: white;">Clear All</button>
                 <button id="closeFilterBtn" class="btn-save">Close</button>
@@ -283,7 +252,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
@@ -297,8 +265,6 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
 
         // Global Variables
         let currentDate = new Date();
@@ -312,10 +278,7 @@
         let editingEventId = null;
         
         // Filter State
-        const filterState = {
-            classes: [], // Empty means ALL
-            mandatoryOnly: false
-        };
+        const filterState = { classes: [], mandatoryOnly: false };
 
         // --- DOM Elements ---
         const els = {};
@@ -325,35 +288,13 @@
          'eventPeriod','eventNotes','opt-m5','periodGroup','timeframeGroup','startTime','endTime',
          'customTimeCheck','customTimeCheckContainer','allClassesCheck','dayViewModal','closeDayView',
          'dayViewDateDisplay','dayViewTypeDisplay','dayViewList','dayViewAddBtn','dayViewEditControls',
-         'ssocCheck','noSchoolCheck', 'loginOverlay', 'googleLoginBtn', 'loginError', 'userEmailDisplay', 'logoutBtn',
-         'pinModal', 'pinInput', 'cancelPinBtn', 'submitPinBtn',
+         'ssocCheck','noSchoolCheck', 'pinModal', 'pinInput', 'cancelPinBtn', 'submitPinBtn',
          'mandatoryCheck', 'standardControls', 'saturdayControls', 'silverCheck',
          'filterBtn', 'filterModal', 'filterMandatoryCheck', 'clearFiltersBtn', 'closeFilterBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
         const filterClassChecks = document.querySelectorAll('.filter-class-check');
-
-        // --- AUTHENTICATION ---
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                els.loginOverlay.style.display = 'none';
-                els.userEmailDisplay.innerText = user.email;
-                loadData(); 
-            } else {
-                els.loginOverlay.style.display = 'flex';
-                events = []; noSchoolDays = []; silverDays = [];
-            }
-        });
-
-        els.googleLoginBtn.onclick = () => {
-            signInWithPopup(auth, provider).catch(error => {
-                els.loginError.innerText = "Error: " + error.message;
-                els.loginError.style.display = 'block';
-            });
-        };
-
-        els.logoutBtn.onclick = () => { signOut(auth).then(() => location.reload()); };
 
         // --- FIREBASE DATA ---
         async function loadData() {
@@ -371,7 +312,7 @@
                 silverSnapshot.forEach((doc) => silverDays.push(doc.id));
 
                 renderCalendar();
-            } catch (e) { console.error(e); if (e.code === 'permission-denied') { els.loginError.innerText = "Access Denied: Email not authorized."; els.loginError.style.display = 'block'; els.loginOverlay.style.display = 'flex'; signOut(auth); } else { alert(e.message); } }
+            } catch (e) { console.error(e); alert("Data load error: " + e.message); }
         }
 
         // --- CALENDAR LOGIC ---
@@ -412,14 +353,9 @@
         // --- FILTERING HELPER ---
         function getFilteredEvents() {
             return events.filter(evt => {
-                // Mandatory Filter
                 if (filterState.mandatoryOnly && !evt.mandatory) return false;
-                
-                // Class Filter
                 if (filterState.classes.length > 0) {
-                    // Event has NO classes (means ALL) -> Include
                     if (!evt.classes || evt.classes.length === 0) return true;
-                    // Event has classes -> Check intersection
                     const hasMatch = evt.classes.some(c => filterState.classes.includes(c));
                     if (!hasMatch) return false;
                 }
@@ -520,7 +456,7 @@
 
         function renderEventsOnGrid() {
             const eventsByTarget = {};
-            const filteredEvents = getFilteredEvents(); // USE FILTERED EVENTS
+            const filteredEvents = getFilteredEvents(); 
 
             filteredEvents.forEach(evt => {
                 let targetId;
