@@ -91,7 +91,7 @@
             transition: opacity 0.3s;
         }
 
-        /* --- CLEAN MODE LEGEND (STACKED) --- */
+        /* --- CLEAN MODE LEGEND --- */
         .clean-mode-legend {
             position: absolute;
             right: 0; 
@@ -348,6 +348,7 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: #666;
+            z-index: 10;
         }
         .modal-title { margin-bottom: 20px; font-size: 1.5rem; color: #333; }
 
@@ -372,11 +373,19 @@
             border-bottom: 2px solid #003087;
             padding-bottom: 10px;
             margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
+        
+        .header-text-group {
+            display: flex;
+            flex-direction: column;
+        }
+
         .day-view-date { font-size: 1.8rem; font-weight: bold; color: #333; }
         .day-view-type { font-size: 1.2rem; color: #003087; font-weight: bold; margin-top: 5px; }
         
-        /* SCROLL BAR FIX: Removed max-height/overflow from here */
         .day-view-list {
             display: flex;
             flex-direction: column;
@@ -420,34 +429,13 @@
         .edit-btn { background-color: #f0ad4e; color: white; }
         .delete-btn { background-color: #ff4d4f; color: white; }
 
-        .day-view-add-btn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background-color: #003087;
-            color: white;
-            border-radius: 50%;
-            border: none;
-            font-size: 2rem;
-            font-weight: bold;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-            transition: background 0.2s;
-        }
-        .day-view-add-btn:hover { background-color: #001e54; }
-        
-        .day-view-toggles {
-            position: absolute;
-            bottom: 20px;
-            left: 25px;
-            display: none; 
-            gap: 20px; 
-            align-items: center;
+        /* Updated Edit Controls Container */
+        .day-view-edit-controls {
+            display: none; /* Managed by JS */
+            flex-direction: column;
+            gap: 5px; 
+            align-items: flex-start; /* Left Align elements */
+            margin-right: 35px; /* Space from close 'X' */
         }
 
         .toggle-item {
@@ -464,6 +452,24 @@
         .label-noschool { color: #d9534f; }
 
         .toggle-item input { transform: scale(1.2); cursor: pointer; }
+
+        /* Rectangular Add Button */
+        .day-view-add-btn-rect {
+            background-color: #003087;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+        }
+        .day-view-add-btn-rect:hover { background-color: #001e54; }
         
         .force-hide { display: none !important; }
         .force-show-flex { display: flex !important; }
@@ -571,22 +577,25 @@
     <div id="dayViewModal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal-btn" id="closeDayView">&times;</button>
+            
             <div class="day-view-header">
-                <div class="day-view-date" id="dayViewDateDisplay">January 1, 2026</div>
-                <div class="day-view-type" id="dayViewTypeDisplay">M1</div>
+                <div class="header-text-group">
+                    <div class="day-view-date" id="dayViewDateDisplay">January 1, 2026</div>
+                    <div class="day-view-type" id="dayViewTypeDisplay">M1</div>
+                </div>
+                
+                <div class="day-view-edit-controls" id="dayViewEditControls">
+                    <label class="toggle-item label-ssoc">
+                        <input type="checkbox" id="ssocCheck"> SSoC
+                    </label>
+                    <label class="toggle-item label-noschool">
+                        <input type="checkbox" id="noSchoolCheck"> No School
+                    </label>
+                    <button id="dayViewAddBtn" class="day-view-add-btn-rect">+ Add Event</button>
+                </div>
             </div>
+            
             <div id="dayViewList" class="day-view-list"></div>
-            
-            <button id="dayViewAddBtn" class="day-view-add-btn" title="Add event">+</button>
-            
-            <div class="day-view-toggles" id="dayViewToggles">
-                <label class="toggle-item label-ssoc">
-                    <input type="checkbox" id="ssocCheck"> SSoC
-                </label>
-                <label class="toggle-item label-noschool">
-                    <input type="checkbox" id="noSchoolCheck"> No School
-                </label>
-            </div>
         </div>
     </div>
 
@@ -634,7 +643,7 @@
         const dayViewList = document.getElementById('dayViewList');
         const dayViewAddBtn = document.getElementById('dayViewAddBtn');
         
-        const dayViewToggles = document.getElementById('dayViewToggles');
+        const dayViewEditControls = document.getElementById('dayViewEditControls');
         const ssocCheck = document.getElementById('ssocCheck');
         const noSchoolCheck = document.getElementById('noSchoolCheck');
 
@@ -899,17 +908,14 @@
             dayViewList.innerHTML = ""; 
 
             if (isEditMode) {
-                dayViewAddBtn.style.display = 'flex';
-                dayViewToggles.style.display = 'flex';
+                dayViewEditControls.style.display = 'flex';
                 
                 noSchoolCheck.checked = isNoSchoolDay(dateKey);
-                // Check if SSOC event exists
                 const existingSSOC = events.find(e => e.date === dateKey && e.name === "Special Schedule of Calls");
                 ssocCheck.checked = !!existingSSOC;
                 
                 dayViewAddBtn.onclick = () => { dayViewModal.style.display = 'none'; openAddModal(dateKey); };
                 
-                // NO SCHOOL Logic
                 noSchoolCheck.onclick = () => {
                     const isNS = noSchoolCheck.checked;
                     if(isNS) {
@@ -921,14 +927,13 @@
                     renderCalendar(); 
                 };
 
-                // SSOC Logic
                 ssocCheck.onclick = () => {
                     if (ssocCheck.checked) {
                         const newEvent = {
                             id: Date.now(),
                             date: dateKey,
                             name: "Special Schedule of Calls",
-                            period: "other", 
+                            period: "other", // MOVED TO OTHER
                             classes: [] 
                         };
                         events.push(newEvent);
@@ -941,8 +946,7 @@
                 };
 
             } else {
-                dayViewAddBtn.style.display = 'none';
-                dayViewToggles.style.display = 'none';
+                dayViewEditControls.style.display = 'none';
             }
 
             const dayEvents = events.filter(e => e.date === dateKey);
@@ -965,7 +969,6 @@
                     let attendanceStr;
                     if (evt.classes.length === 0 || evt.classes.length === 4) { attendanceStr = 'All'; } else { attendanceStr = evt.classes.join(', '); }
                     
-                    // Time Logic
                     let timeDisplay = "";
                     if (evt.startTime && evt.endTime) { 
                         timeDisplay = `${evt.startTime} - ${evt.endTime}`; 
@@ -1061,7 +1064,6 @@
             } else {
                 periodGroup.style.display = 'block';
                 
-                // Hide checkbox if period is Other (implied custom time)
                 if (selectedPeriod === 'other') {
                     customTimeCheckContainer.style.display = 'none';
                     timeframeGroup.style.display = 'block'; 
