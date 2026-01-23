@@ -220,7 +220,11 @@
         }
         .day-cell:hover { background-color: #f0f8ff; }
         
-        .day-cell.week-view { height: auto; min-height: 500px; }
+        /* WEEK VIEW DYNAMIC HEIGHT */
+        .day-cell.week-view {
+            height: auto !important; /* Force auto height */
+            min-height: 500px; 
+        }
 
         .date-number {
             position: absolute;
@@ -258,11 +262,18 @@
             border-bottom: 1px dotted #999;
             width: 100%;
             font-size: 0.75rem;
-            padding: 3px 2px;
+            padding: 3px 2px; /* UPDATED to 3px */
             overflow: hidden;
             position: relative; 
         }
-        .day-cell.week-view .day-section { height: auto; flex: 1; min-height: 80px; }
+        
+        /* WEEK VIEW SECTION DYNAMIC BEHAVIOR */
+        .day-cell.week-view .day-section {
+            height: auto;
+            flex: 1 0 auto; /* Grow: 1, Shrink: 0, Basis: Auto (Prevents Cutoff) */
+            min-height: 80px;
+        }
+        
         .day-section:last-child { border-bottom: none; }
 
         .day-section::after {
