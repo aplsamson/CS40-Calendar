@@ -17,28 +17,32 @@
         .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
         .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
-        .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
+        /* LEFT ACTIONS (Stacked) */
+        .header-actions-left { 
+            position: absolute; left: 0; top: 50%; transform: translateY(-50%); 
+            display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; 
+        }
         
+        /* RIGHT ACTIONS */
         .header-actions-right { 
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
             display: flex; flex-direction: row; align-items: center; gap: 12px; z-index: 20; 
+            transition: opacity 0.3s;
         }
+        .header-actions-right.hidden { opacity: 0; pointer-events: none; }
 
         .action-buttons-stack { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
         
-        /* UPDATED LEGEND STYLES */
+        /* LEGEND */
         .clean-mode-legend { 
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
             display: none; background: white; padding: 15px 25px; border-radius: 20px; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
             z-index: 20; min-width: 200px;
-            /* Two Column Layout */
-            flex-direction: row; 
-            gap: 25px; 
+            flex-direction: row; gap: 25px; 
         }
-        .legend-column {
-            display: flex; flex-direction: column; gap: 8px;
-        }
+        .clean-mode-legend.visible { display: flex; }
+        .legend-column { display: flex; flex-direction: column; gap: 8px; }
         .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: bold; color: #555; white-space: nowrap; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
         .legend-symbol { width: 12px; text-align: center; font-weight: bold; font-size: 1.2rem; line-height: 12px; color: #333; }
@@ -47,6 +51,9 @@
         .header-btn:active { transform: scale(0.98); }
         .week-view-btn { background-color: #003087; color: white; }
         .week-view-btn:hover { background-color: #001e54; }
+        .legend-btn { background-color: #6c757d; color: white; }
+        .legend-btn:hover { background-color: #5a6268; }
+        
         .add-event-btn-main { background-color: #003087; color: white; display: none; }
         .add-event-btn-main:hover { background-color: #001e54; }
         .edit-mode-btn { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
@@ -63,14 +70,40 @@
         .filter-btn.active-filter { border-color: #003087; background-color: #eef4ff; }
         .filter-btn.active-filter svg { fill: #003087; }
 
-        .calendar-container { width: 100%; max-width: 1400px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; border-top: 2px solid black; border-left: 2px solid black; }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #003087; color: white; border-right: 2px solid black; border-bottom: 2px solid black; }
+        /* CALENDAR CONTAINER - STICKY FIXES */
+        .calendar-container { 
+            width: 100%; max-width: 1400px; 
+            background: white; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            border-radius: 8px; 
+            /* REMOVED overflow:hidden to allow sticky children to work relative to body */
+            border-top: 2px solid black; 
+            border-left: 2px solid black; 
+        }
+
+        /* STICKY HEADER 1: Month/Nav Bar */
+        .calendar-header { 
+            display: flex; justify-content: space-between; align-items: center; padding: 20px; 
+            background-color: #003087; color: white; 
+            border-right: 2px solid black; border-bottom: 2px solid black;
+            /* STICKY PROPERTIES */
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+        }
         .calendar-header.hidden { display: none; }
         .nav-btn { background: none; border: 1px solid white; color: white; padding: 5px 15px; cursor: pointer; font-size: 1.2rem; border-radius: 4px; }
         .nav-btn:hover { background: rgba(255,255,255,0.2); }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
-        .grid-header-cell { text-align: center; padding: 10px; background-color: #e0e0e0; font-weight: bold; border-right: 2px solid black; border-bottom: 2px solid black; color: #333; }
+        
+        /* STICKY HEADER 2: Days of Week */
+        .grid-header-cell { 
+            text-align: center; padding: 10px; background-color: #e0e0e0; font-weight: bold; 
+            border-right: 2px solid black; border-bottom: 2px solid black; color: #333; 
+            /* STICKY PROPERTIES (Offset by height of Nav Bar ~77px) */
+            position: sticky; top: 77px; z-index: 90;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+        }
         
         .day-cell { height: 240px; overflow: hidden; border-right: 2px solid black; border-bottom: 2px solid black; position: relative; display: flex; flex-direction: column; background-color: white; cursor: pointer; transition: background-color 0.1s; }
         .day-cell:hover { background-color: #f0f8ff; }
@@ -107,10 +140,7 @@
         
         .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
         .modal-actions { display: flex; gap: 10px; }
-        
-        .footer-toggles { display: flex; gap: 15px; align-items: center; }
-        .footer-toggle-label { display: flex; align-items: center; gap: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
-        
+        .mandatory-toggle { display: flex; align-items: center; gap: 8px; font-weight: bold; color: #d9534f; cursor: pointer; }
         .btn-cancel { background: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-save { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 
@@ -169,6 +199,7 @@
     <div class="top-container">
         <div class="header-actions-left" id="headerActionsLeft">
             <button id="weekViewBtn" class="header-btn week-view-btn">Month View</button>
+            <button id="viewLegendBtn" class="header-btn legend-btn" style="margin-top: 10px;">View Legend</button>
         </div>
         <div class="main-header">
             <img src="https://www.aviatorgear.com/images/product/large/39950.jpg" alt="CS40 Logo" class="header-logo" id="mainHeaderLogo" title="Double Click to Toggle Clean Mode">
@@ -324,7 +355,8 @@
          'dayViewDateDisplay','dayViewTypeDisplay','dayViewList','dayViewAddBtn','dayViewEditControls',
          'ssocCheck','noSchoolCheck', 'pinModal', 'pinInput', 'cancelPinBtn', 'submitPinBtn',
          'mandatoryCheck', 'tentativeCheck', 'standardControls', 'saturdayControls', 'silverCheck',
-         'filterBtn', 'filterModal', 'filterMandatoryCheck', 'clearFiltersBtn', 'closeFilterBtn'
+         'filterBtn', 'filterModal', 'filterMandatoryCheck', 'clearFiltersBtn', 'closeFilterBtn',
+         'viewLegendBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -582,6 +614,20 @@
             return chip;
         }
 
+        // --- VIEW LEGEND TOGGLE ---
+        els.viewLegendBtn.addEventListener('click', () => {
+            const isVisible = els.cleanModeLegend.classList.contains('visible');
+            if (isVisible) {
+                els.cleanModeLegend.classList.remove('visible');
+                els.headerActionsRight.classList.remove('hidden');
+                els.viewLegendBtn.innerText = "View Legend";
+            } else {
+                els.cleanModeLegend.classList.add('visible');
+                els.headerActionsRight.classList.add('hidden');
+                els.viewLegendBtn.innerText = "Hide Legend";
+            }
+        });
+
         // --- FILTER HANDLERS ---
         els.filterBtn.onclick = () => { els.filterModal.style.display = 'flex'; };
         els.closeFilterBtn.onclick = () => { els.filterModal.style.display = 'none'; };
@@ -625,11 +671,9 @@
         function updateEditModeUI() {
             if (isEditMode) { 
                 els.editModeBtn.innerText = "Exit Edit Mode"; 
-                els.headerActionsRight.classList.add('edit-active');
                 els.addEventBtn.style.display = 'block'; 
             } else { 
                 els.editModeBtn.innerText = "Edit Mode"; 
-                els.headerActionsRight.classList.remove('edit-active');
                 els.addEventBtn.style.display = 'none'; 
             }
             if (els.dayViewModal.style.display === 'flex' && currentDayViewKey) {
@@ -748,7 +792,28 @@
         els.cancelBtn.onclick = () => els.eventModal.style.display = 'none';
         els.closeDayView.onclick = () => els.dayViewModal.style.display = 'none';
         window.onclick = (e) => { if (e.target == els.eventModal) els.eventModal.style.display = "none"; if (e.target == els.dayViewModal) els.dayViewModal.style.display = "none"; if (e.target == els.pinModal) els.pinModal.style.display = "none"; if (e.target == els.filterModal) els.filterModal.style.display = "none"; };
-        els.mainHeaderLogo.addEventListener('dblclick', () => { els.headerActionsLeft.classList.toggle('force-hide'); els.headerActionsRight.classList.toggle('force-hide'); els.calendarNavHeader.classList.toggle('hidden'); if (els.headerActionsRight.classList.contains('force-hide')) els.cleanModeLegend.classList.add('force-show-flex'); else els.cleanModeLegend.classList.remove('force-show-flex'); });
+        
+        // CLEAN MODE TOGGLE LOGIC
+        els.mainHeaderLogo.addEventListener('dblclick', () => { 
+            els.headerActionsLeft.classList.toggle('force-hide'); 
+            els.headerActionsRight.classList.toggle('force-hide'); 
+            
+            // Toggle Clean Mode Legend if Right Actions are hidden
+            if (els.headerActionsRight.classList.contains('force-hide')) {
+                els.cleanModeLegend.classList.add('force-show-flex');
+            } else {
+                els.cleanModeLegend.classList.remove('force-show-flex');
+            }
+
+            // Only hide the Calendar Nav Header if NOT in Month View
+            if (currentView !== 'month') {
+                els.calendarNavHeader.classList.toggle('hidden'); 
+            } else {
+                // In Month View, ensure header is VISIBLE even in clean mode
+                els.calendarNavHeader.classList.remove('hidden');
+            }
+        });
+
         els.weekViewBtn.addEventListener('click', () => { currentView = (currentView === 'month') ? 'week' : 'month'; els.weekViewBtn.innerText = (currentView === 'month') ? "Week View" : "Month View"; renderCalendar(); });
         els.prevBtn.addEventListener('click', () => { if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() - 1); else currentDate.setDate(currentDate.getDate() - 7); renderCalendar(); });
         els.nextBtn.addEventListener('click', () => { if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() + 1); else currentDate.setDate(currentDate.getDate() + 7); renderCalendar(); });
