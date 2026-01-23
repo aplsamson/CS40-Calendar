@@ -59,7 +59,7 @@
             font-size: 0.8rem; font-weight: bold; color: #666; z-index: 1; pointer-events: none;
         }
 
-        .day-content { flex: 1; display: flex; flex-direction: column; padding-top: 35px; height: 100%; } /* Increased top padding for labels */
+        .day-content { flex: 1; display: flex; flex-direction: column; padding-top: 25px; height: 100%; }
         .day-section { flex: 1; border-bottom: 1px dotted #999; width: 100%; font-size: 0.75rem; padding: 3px 2px; overflow: hidden; position: relative; }
         .day-cell.week-view .day-section { height: auto; flex: 1 0 auto; min-height: 80px; }
         .day-section:last-child { border-bottom: none; }
@@ -82,7 +82,6 @@
         .checkbox-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; }
         
-        /* Updated Modal Footer Layout */
         .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
         .modal-actions { display: flex; gap: 10px; }
         .mandatory-toggle { display: flex; align-items: center; gap: 8px; font-weight: bold; color: #d9534f; cursor: pointer; }
@@ -108,6 +107,10 @@
 
         /* EDIT CONTROLS */
         .day-view-edit-controls { display: none; flex-direction: column; gap: 5px; align-items: flex-start; margin-right: 35px; }
+        
+        /* VERTICAL STACK FIX FOR STANDARD CONTROLS */
+        #standardControls { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+        
         .toggle-item { font-weight: bold; color: #333; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.95rem; }
         .label-ssoc { color: #003087; }
         .label-noschool { color: #d9534f; }
@@ -166,7 +169,7 @@
             <div class="form-group"><label>Date</label><input type="date" id="eventDate" class="form-control"></div>
             <div class="form-group"><label>Event Name</label><input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Briefs"></div>
             <div class="form-group"><label>Location (Optional)</label><input type="text" id="eventLocation" class="form-control" placeholder="e.g. SAR"></div>
-            <div class="form-group" id="periodGroup"><label>Period</label><select id="eventPeriod" class="form-control"><option value="preflight">Preflight</option><option value="morning">Morning Period</option><option value="m5" id="opt-m5">M5</option><option value="other">Other</option></select></div>
+            <div class="form-group" id="periodGroup"><label>Period</label><select id="eventPeriod" class="form-control"><option value="preflight">Preflight</option><option value="morning">Morning Period</option><option value="m5" id="opt-m5">M4.5</option><option value="other">Other</option></select></div>
             <div class="form-group" id="customTimeCheckContainer"><label style="font-weight: normal; cursor:pointer;"><input type="checkbox" id="customTimeCheck"> Enable Custom Time</label></div>
             <div class="form-group" id="timeframeGroup" style="display:none;"><label>Timeframe</label><div class="time-inputs"><input type="time" id="startTime" class="form-control"><span style="align-self:center;">to</span><input type="time" id="endTime" class="form-control"></div></div>
             <div class="form-group"><label>Class Attendance</label><div class="checkbox-group"><label class="checkbox-all"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
@@ -212,13 +215,13 @@
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
-        apiKey: "AIzaSyCyoUxG8Qfc6g5kwgqRK0Q2J0k1tXtQeVs",
-        authDomain: "cs40-calendar.firebaseapp.com",
-        projectId: "cs40-calendar",
-        storageBucket: "cs40-calendar.firebasestorage.app",
-        messagingSenderId: "661443751516",
-        appId: "1:661443751516:web:ddee708ab5a1014cadc099"
-    };
+            apiKey: "AIzaSyCyoUxG8Qfc6g5kwgqRK0Q2J0k1tXtQeVs",
+            authDomain: "cs40-calendar.firebaseapp.com",
+            projectId: "cs40-calendar",
+            storageBucket: "cs40-calendar.firebasestorage.app",
+            messagingSenderId: "661443751516",
+            appId: "1:661443751516:web:ddee708ab5a1014cadc099"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -227,7 +230,7 @@
         let currentDate = new Date();
         let events = [];
         let noSchoolDays = [];
-        let silverDays = []; // New collection
+        let silverDays = [];
         const PIN_CODE = "2640";
         let isEditMode = false;
         let currentDayViewKey = null; 
@@ -434,7 +437,7 @@
                 htmlContent += `
                     <div class="day-section" id="cell-${dateKey}-preflight" data-label="Preflight"></div>
                     <div class="day-section" id="cell-${dateKey}-morning" data-label="AM"></div>
-                    <div class="day-section" id="cell-${dateKey}-m5" data-label="M5"></div>
+                    <div class="day-section" id="cell-${dateKey}-m5" data-label="M4.5"></div>
                     <div class="day-section" id="cell-${dateKey}-other" data-label="Other"></div>
                 `;
             }
@@ -483,6 +486,7 @@
                 chip.style.textAlign = "center";
                 chip.style.border = "1px solid #ccc";
                 chip.style.fontWeight = "bold";
+                chip.style.padding = "1px 4px"; // Exact sizing fix
                 chip.innerText = evt.name;
                 return chip;
             }
@@ -502,7 +506,6 @@
         }
 
         // --- EDIT MODE & UI HANDLERS ---
-
 
         els.editModeBtn.addEventListener('click', () => {
             if (!isEditMode) {
