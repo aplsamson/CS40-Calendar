@@ -9,7 +9,7 @@
     <style>
         html { font-size: 14px; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background-color: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; width: 100%; }
+        body { background-color: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; width: 100%; min-height: 100vh; }
         
         .top-container { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; max-width: 1400px; margin-bottom: 30px; min-height: 110px; }
         .main-header { display: flex; align-items: center; background-color: white; padding: 15px 30px; border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10; }
@@ -51,7 +51,8 @@
         .day-type { position: absolute; top: 5px; width: 100%; text-align: center; font-weight: bold; font-size: 0.95rem; color: #003087; z-index: 2; pointer-events: none; }
         
         .day-content { flex: 1; display: flex; flex-direction: column; padding-top: 25px; height: 100%; }
-        .day-section { flex: 1; border-bottom: 1px dotted #999; width: 100%; font-size: 0.75rem; padding: 1px 2px; overflow: hidden; position: relative; }
+        .day-section { flex: 1; border-bottom: 1px dotted #999; width: 100%; font-size: 0.75rem; padding: 3px 2px; overflow: hidden; position: relative; }
+        /* Dynamic Week View Fix */
         .day-cell.week-view .day-section { height: auto; flex: 1 0 auto; min-height: 80px; }
         .day-section:last-child { border-bottom: none; }
         .day-section::after { content: attr(data-label); position: absolute; bottom: 2px; right: 4px; font-size: 0.65rem; color: #999; pointer-events: none; opacity: 0.7; font-weight: bold; text-transform: uppercase; }
@@ -133,6 +134,19 @@
         <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 
+    <div id="pinModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 300px;">
+            <h3 class="modal-title">Enter Admin PIN</h3>
+            <div class="form-group">
+                <input type="password" id="pinInput" class="form-control" placeholder="PIN Code">
+            </div>
+            <div class="modal-actions">
+                <button id="cancelPinBtn" class="btn-cancel">Cancel</button>
+                <button id="submitPinBtn" class="btn-save">Unlock</button>
+            </div>
+        </div>
+    </div>
+
     <div id="eventModal" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title" id="modalTitle">Add Event</h3>
@@ -167,7 +181,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
@@ -177,9 +191,8 @@
             storageBucket: "cs40-calendar.firebasestorage.app",
             messagingSenderId: "661443751516",
             appId: "1:661443751516:web:ddee708ab5a1014cadc099"
-  };
+        };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -192,10 +205,8 @@
         let currentDayViewKey = null; 
         let currentView = 'month';
         let editingEventId = null;
-        let editingDocId = null; // Store Firestore Document ID
 
         // --- DOM Elements ---
-        // (Getting all elements by ID)
         const els = {};
         ['monthYear','calendarGrid','prevBtn','nextBtn','weekViewBtn','mainHeaderTitle','mainHeaderLogo',
          'headerActionsLeft','headerActionsRight','calendarNavHeader','cleanModeLegend','addEventBtn','editModeBtn',
@@ -203,12 +214,12 @@
          'eventPeriod','eventNotes','opt-m5','periodGroup','timeframeGroup','startTime','endTime',
          'customTimeCheck','customTimeCheckContainer','allClassesCheck','dayViewModal','closeDayView',
          'dayViewDateDisplay','dayViewTypeDisplay','dayViewList','dayViewAddBtn','dayViewEditControls',
-         'ssocCheck','noSchoolCheck'
+         'ssocCheck','noSchoolCheck', 'pinModal', 'pinInput', 'cancelPinBtn', 'submitPinBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
 
-        // --- FIREBASE FUNCTIONS ---
+        // --- FIREBASE DATA ---
 
         async function loadData() {
             try {
@@ -216,21 +227,20 @@
                 const eventsSnapshot = await getDocs(collection(db, "events"));
                 events = [];
                 eventsSnapshot.forEach((doc) => {
-                    events.push({ ...doc.data(), id: doc.id }); // Use doc.id as the event ID
+                    events.push({ ...doc.data(), id: doc.id });
                 });
 
                 // Fetch No School Days
                 const noSchoolSnapshot = await getDocs(collection(db, "noSchoolDays"));
                 noSchoolDays = [];
                 noSchoolSnapshot.forEach((doc) => {
-                    // We store the date string as the document ID for noSchoolDays
-                    noSchoolDays.push(doc.id); 
+                    noSchoolDays.push(doc.id);
                 });
 
                 renderCalendar();
             } catch (e) {
                 console.error("Error loading data: ", e);
-                alert("Error loading calendar data. Check console.");
+                alert("Error loading calendar data: " + e.message);
             }
         }
 
@@ -271,8 +281,6 @@
             });
             return `linear-gradient(to right, ${gradientParts.join(', ')})`;
         }
-
-        // --- RENDERERS ---
 
         function renderCalendar() {
             if (currentView === 'month') { renderMonthView(); } else { renderWeekView(); }
@@ -385,7 +393,6 @@
                 if (!targetEl) return;
                 const evts = eventsByTarget[targetId];
                 
-                // Overflow logic for Month View
                 if (currentView === 'month' && evts.length > 2) {
                     const chip = createEventChip(evts[0]);
                     targetEl.appendChild(chip);
@@ -403,7 +410,6 @@
             const chip = document.createElement('div');
             chip.className = 'event-chip';
             
-            // SSoC Styling
             if (evt.name === "Special Schedule of Calls") {
                 chip.style.background = "white";
                 chip.style.color = "black";
@@ -432,10 +438,31 @@
 
         els.editModeBtn.addEventListener('click', () => {
             if (!isEditMode) {
-                const pin = prompt("Enter PIN to enable Edit Mode:");
-                if (pin === PIN_CODE) { isEditMode = true; updateEditModeUI(); } else { alert("Incorrect PIN."); }
-            } else { isEditMode = false; updateEditModeUI(); }
+                // Open PIN Modal
+                els.pinInput.value = "";
+                els.pinModal.style.display = 'flex';
+                els.pinInput.focus();
+            } else { 
+                isEditMode = false; 
+                updateEditModeUI(); 
+            }
         });
+
+        // PIN Logic
+        function checkPin() {
+            if (els.pinInput.value === PIN_CODE) {
+                isEditMode = true;
+                updateEditModeUI();
+                els.pinModal.style.display = 'none';
+            } else {
+                alert("Incorrect PIN.");
+                els.pinInput.value = "";
+                els.pinInput.focus();
+            }
+        }
+        els.submitPinBtn.onclick = checkPin;
+        els.cancelPinBtn.onclick = () => els.pinModal.style.display = 'none';
+        els.pinInput.onkeypress = (e) => { if(e.key === 'Enter') checkPin(); };
 
         function updateEditModeUI() {
             if (isEditMode) {
@@ -462,7 +489,6 @@
                 
                 els.dayViewAddBtn.onclick = () => { els.dayViewModal.style.display = 'none'; openAddModal(dateKey); };
                 
-                // NO SCHOOL TOGGLE
                 els.noSchoolCheck.onclick = async () => {
                     const isNS = els.noSchoolCheck.checked;
                     try {
@@ -477,7 +503,6 @@
                     } catch(e) { alert("Error saving: " + e.message); }
                 };
 
-                // SSOC TOGGLE
                 els.ssocCheck.onclick = async () => {
                     try {
                         if (els.ssocCheck.checked) {
@@ -489,13 +514,12 @@
                             };
                             await addDoc(collection(db, "events"), newEvent);
                         } else {
-                            // Find and delete ALL ssoc events for this day (cleanup)
                             const ssocEvents = events.filter(e => e.date === dateKey && e.name === "Special Schedule of Calls");
                             for (const evt of ssocEvents) {
                                 await deleteDoc(doc(db, "events", evt.id));
                             }
                         }
-                        await loadData(); // Reload to get IDs/Updates
+                        await loadData();
                     } catch(e) { alert("Error saving: " + e.message); }
                 };
 
@@ -506,7 +530,6 @@
             const dayEvents = events.filter(e => e.date === dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
 
-            // Sort logic
             if (isNoSchool) {
                 dayEvents.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
             } else {
@@ -541,13 +564,10 @@
                     let rightCol = (evt.notes && evt.notes.trim()) ? `<div class="day-view-notes"><strong>Notes:</strong>${evt.notes}</div>` : "";
                     item.innerHTML = leftCol + rightCol;
 
-                    // Wire buttons manually to avoid global scope issues
                     if (isEditMode) {
                         const editBtn = item.querySelector('.edit-btn');
                         const delBtn = item.querySelector('.delete-btn');
-                        
                         editBtn.onclick = () => { els.dayViewModal.style.display = 'none'; openAddModal(dateKey, evt); };
-                        
                         delBtn.onclick = async () => {
                             if(confirm("Delete this event?")) {
                                 try {
@@ -564,10 +584,7 @@
             els.dayViewModal.style.display = 'flex';
         }
 
-        // --- ADD/EDIT MODAL LOGIC ---
-
         function openAddModal(dateStr, eventToEdit = null) {
-            // Reset
             els.eventName.value = ''; els.eventLocation.value = ''; els.startTime.value = ''; els.endTime.value = ''; els.eventNotes.value = '';
             els.allClassesCheck.checked = false; classChecks.forEach(cb => cb.checked = false);
             els.customTimeCheck.checked = false;
@@ -582,7 +599,6 @@
                 els.eventLocation.value = eventToEdit.location || '';
                 els.eventNotes.value = eventToEdit.notes || '';
                 
-                // Classes
                 if(eventToEdit.classes) {
                     eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; });
                     if(eventToEdit.classes.length === 4) els.allClassesCheck.checked = true;
@@ -648,6 +664,7 @@
         window.onclick = (e) => { 
             if (e.target == els.eventModal) els.eventModal.style.display = "none"; 
             if (e.target == els.dayViewModal) els.dayViewModal.style.display = "none"; 
+            if (e.target == els.pinModal) els.pinModal.style.display = "none";
         };
 
         // --- MAIN HEADER LOGO / ACTIONS ---
