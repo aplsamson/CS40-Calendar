@@ -70,13 +70,12 @@
         .filter-btn.active-filter { border-color: #003087; background-color: #eef4ff; }
         .filter-btn.active-filter svg { fill: #003087; }
 
-        /* CALENDAR CONTAINER - STICKY FIXES */
+        /* CALENDAR CONTAINER */
         .calendar-container { 
             width: 100%; max-width: 1400px; 
             background: white; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
             border-radius: 8px; 
-            /* REMOVED overflow:hidden to allow sticky children to work relative to body */
             border-top: 2px solid black; 
             border-left: 2px solid black; 
         }
@@ -87,7 +86,7 @@
             background-color: #003087; color: white; 
             border-right: 2px solid black; border-bottom: 2px solid black;
             /* STICKY PROPERTIES */
-            position: sticky; top: 0; z-index: 100;
+            position: sticky; top: 0; z-index: 101;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
         }
         .calendar-header.hidden { display: none; }
@@ -100,8 +99,8 @@
         .grid-header-cell { 
             text-align: center; padding: 10px; background-color: #e0e0e0; font-weight: bold; 
             border-right: 2px solid black; border-bottom: 2px solid black; color: #333; 
-            /* STICKY PROPERTIES (Offset by height of Nav Bar ~77px) */
-            position: sticky; top: 77px; z-index: 90;
+            /* STICKY PROPERTIES (Adjusted overlap to close gap) */
+            position: sticky; top: 75px; z-index: 90;
             box-shadow: 0 2px 2px rgba(0,0,0,0.1);
         }
         
@@ -125,8 +124,8 @@
         .day-cell.week-view .event-chip { font-size: 0.9rem; padding: 6px 8px; white-space: normal; line-height: 1.3; margin-bottom: 4px; display: flex; flex-direction: column; }
         .more-events-indicator { font-size: 1.2rem; line-height: 0.5; color: #333; text-align: center; font-weight: bold; padding-bottom: 2px; }
 
-        /* MODALS */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        /* MODALS - Increased z-index to fix overlapping issues */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1001; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 25px; border-radius: 8px; width: 550px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; max-height: 85vh; overflow-y: auto; }
         .close-modal-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; z-index: 10; }
         .modal-title { margin-bottom: 20px; font-size: 1.5rem; color: #333; }
@@ -140,7 +139,10 @@
         
         .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
         .modal-actions { display: flex; gap: 10px; }
-        .mandatory-toggle { display: flex; align-items: center; gap: 8px; font-weight: bold; color: #d9534f; cursor: pointer; }
+        
+        .footer-toggles { display: flex; gap: 15px; align-items: center; }
+        .footer-toggle-label { display: flex; align-items: center; gap: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+        
         .btn-cancel { background: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-save { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 
@@ -671,9 +673,11 @@
         function updateEditModeUI() {
             if (isEditMode) { 
                 els.editModeBtn.innerText = "Exit Edit Mode"; 
+                els.headerActionsRight.classList.add('edit-active');
                 els.addEventBtn.style.display = 'block'; 
             } else { 
                 els.editModeBtn.innerText = "Edit Mode"; 
+                els.headerActionsRight.classList.remove('edit-active');
                 els.addEventBtn.style.display = 'none'; 
             }
             if (els.dayViewModal.style.display === 'flex' && currentDayViewKey) {
