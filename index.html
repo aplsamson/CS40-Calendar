@@ -17,13 +17,8 @@
         .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
         .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
-        /* LEFT ACTIONS (Stacked) */
-        .header-actions-left { 
-            position: absolute; left: 0; top: 50%; transform: translateY(-50%); 
-            display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; 
-        }
+        .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
         
-        /* RIGHT ACTIONS */
         .header-actions-right { 
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
             display: flex; flex-direction: row; align-items: center; gap: 12px; z-index: 20; 
@@ -85,7 +80,6 @@
             display: flex; justify-content: space-between; align-items: center; padding: 20px; 
             background-color: #003087; color: white; 
             border-right: 2px solid black; border-bottom: 2px solid black;
-            /* STICKY PROPERTIES */
             position: sticky; top: 0; z-index: 101;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
         }
@@ -95,12 +89,11 @@
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
         
-        /* STICKY HEADER 2: Days of Week */
+        /* STICKY HEADER 2: Days of Week - MOVED UP TO 72px TO CLOSE GAP */
         .grid-header-cell { 
             text-align: center; padding: 10px; background-color: #e0e0e0; font-weight: bold; 
             border-right: 2px solid black; border-bottom: 2px solid black; color: #333; 
-            /* STICKY PROPERTIES (Adjusted overlap to close gap) */
-            position: sticky; top: 75px; z-index: 90;
+            position: sticky; top: 72px; z-index: 90;
             box-shadow: 0 2px 2px rgba(0,0,0,0.1);
         }
         
@@ -124,7 +117,7 @@
         .day-cell.week-view .event-chip { font-size: 0.9rem; padding: 6px 8px; white-space: normal; line-height: 1.3; margin-bottom: 4px; display: flex; flex-direction: column; }
         .more-events-indicator { font-size: 1.2rem; line-height: 0.5; color: #333; text-align: center; font-weight: bold; padding-bottom: 2px; }
 
-        /* MODALS - Increased z-index to fix overlapping issues */
+        /* MODALS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1001; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 25px; border-radius: 8px; width: 550px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; max-height: 85vh; overflow-y: auto; }
         .close-modal-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; z-index: 10; }
@@ -722,13 +715,30 @@
             const dayEvents = getFilteredEvents().filter(e => e.date === dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
 
-            // SAME SORTING LOGIC FOR DAY VIEW
+            // UPDATED SORTING: Period First, Then Time
+            const pO = { 'preflight': 1, 'morning': 2, 'm5': 3, 'other': 4 };
+            
             dayEvents.sort((a, b) => {
+                // SSoC always first if present
                 if (a.name === "Special Schedule of Calls") return -1;
                 if (b.name === "Special Schedule of Calls") return 1;
-                const tA = a.startTime || "99:99";
-                const tB = b.startTime || "99:99";
-                return tA.localeCompare(tB);
+
+                if (isNoSchool) {
+                    // Just time sort for weekends
+                    const tA = a.startTime || "99:99";
+                    const tB = b.startTime || "99:99";
+                    return tA.localeCompare(tB);
+                } else {
+                    // Standard day: Period then Time
+                    const pA = pO[a.period] || 99;
+                    const pB = pO[b.period] || 99;
+                    if (pA !== pB) return pA - pB;
+                    
+                    // Same period, check time
+                    const tA = a.startTime || "99:99";
+                    const tB = b.startTime || "99:99";
+                    return tA.localeCompare(tB);
+                }
             });
 
             if (dayEvents.length === 0) els.dayViewList.innerHTML = "<p style='color:#777; font-style:italic;'>No events.</p>";
