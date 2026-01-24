@@ -75,7 +75,6 @@
             border-left: 2px solid black; 
         }
 
-        /* STICKY HEADER 1: Month/Nav Bar */
         .calendar-header { 
             display: flex; justify-content: space-between; align-items: center; padding: 20px; 
             background-color: #003087; color: white; 
@@ -89,7 +88,6 @@
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
         
-        /* STICKY HEADER 2: Days of Week - MOVED UP TO 72px TO CLOSE GAP */
         .grid-header-cell { 
             text-align: center; padding: 10px; background-color: #e0e0e0; font-weight: bold; 
             border-right: 2px solid black; border-bottom: 2px solid black; color: #333; 
@@ -130,6 +128,10 @@
         .checkbox-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; }
         
+        /* SCROLLABLE DESIGNATOR LIST IN FILTER */
+        .designator-list { display: flex; flex-wrap: wrap; gap: 10px; max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 4px; }
+        .designator-list label { width: 45%; font-size: 0.9rem; }
+
         .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
         .modal-actions { display: flex; gap: 10px; }
         
@@ -138,10 +140,12 @@
         
         .btn-cancel { background: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-save { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .btn-select-all { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 
         /* FILTER MODAL SPECIFIC */
-        #filterModal .modal-content { width: 400px; }
-        #filterModal .modal-footer { margin-top: 30px; }
+        #filterModal .modal-content { width: 450px; }
+        #filterModal .modal-footer { margin-top: 30px; display: flex; justify-content: space-between; }
+        .filter-left-actions { display: flex; gap: 10px; } /* Clear + Select All */
         .filter-section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
         .filter-section:last-child { border-bottom: none; }
         .filter-section h4 { margin: 0 0 10px 0; color: #003087; }
@@ -235,6 +239,7 @@
     <div id="filterModal" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title">Filter Events</h3>
+            
             <div class="filter-section">
                 <h4>By Class</h4>
                 <div class="checkbox-group">
@@ -244,14 +249,35 @@
                     <label><input type="checkbox" value="29" class="filter-class-check"> 29</label>
                 </div>
             </div>
+
             <div class="filter-section">
-                <h4>By Type</h4>
+                <h4>By Event Type</h4>
+                <div class="designator-list">
+                    <label><input type="checkbox" value="Briefing" class="filter-designator-check"> Briefing</label>
+                    <label><input type="checkbox" value="Checkpoint" class="filter-designator-check"> Checkpoint</label>
+                    <label><input type="checkbox" value="Fitness Test" class="filter-designator-check"> Fitness Test</label>
+                    <label><input type="checkbox" value="Formation" class="filter-designator-check"> Formation</label>
+                    <label><input type="checkbox" value="IC Competition" class="filter-designator-check"> IC Competition</label>
+                    <label><input type="checkbox" value="Morale Event" class="filter-designator-check"> Morale Event</label>
+                    <label><input type="checkbox" value="Other" class="filter-designator-check"> Other</label>
+                    <label><input type="checkbox" value="Squadron Time" class="filter-designator-check"> Squadron Time</label>
+                    <label><input type="checkbox" value="Tasker" class="filter-designator-check"> Tasker</label>
+                    <label><input type="checkbox" value="Training" class="filter-designator-check"> Training</label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h4>Status</h4>
                 <div class="checkbox-group">
                     <label><input type="checkbox" id="filterMandatoryCheck"> Mandatory Only</label>
                 </div>
             </div>
+
             <div class="modal-footer">
-                <button id="clearFiltersBtn" class="btn-cancel" style="background: #d9534f; color: white;">Clear All</button>
+                <div class="filter-left-actions">
+                    <button id="clearFiltersBtn" class="btn-cancel" style="background: #d9534f; color: white;">Clear All</button>
+                    <button id="selectAllFiltersBtn" class="btn-select-all">Select All</button>
+                </div>
                 <button id="closeFilterBtn" class="btn-save">Close</button>
             </div>
         </div>
@@ -267,15 +293,28 @@
             <div class="form-group" id="customTimeCheckContainer"><label style="font-weight: normal; cursor:pointer;"><input type="checkbox" id="customTimeCheck"> Enable Custom Time</label></div>
             <div class="form-group" id="timeframeGroup" style="display:none;"><label>Timeframe</label><div class="time-inputs"><input type="time" id="startTime" class="form-control"><span style="align-self:center;">to</span><input type="time" id="endTime" class="form-control"></div></div>
             <div class="form-group"><label>Class Attendance</label><div class="checkbox-group"><label class="checkbox-all"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
+            
+            <div class="form-group">
+                <label>Event Type</label>
+                <select id="eventDesignator" class="form-control">
+                    <option value="Briefing">Briefing</option>
+                    <option value="Checkpoint">Checkpoint</option>
+                    <option value="Fitness Test">Fitness Test</option>
+                    <option value="Formation">Formation</option>
+                    <option value="IC Competition">IC Competition</option>
+                    <option value="Morale Event">Morale Event</option>
+                    <option value="Other">Other</option>
+                    <option value="Squadron Time">Squadron Time</option>
+                    <option value="Tasker">Tasker</option>
+                    <option value="Training">Training</option>
+                </select>
+            </div>
+
             <div class="form-group"><label>Notes</label><textarea id="eventNotes" class="form-control" placeholder="Optional details..."></textarea></div>
             <div class="modal-footer">
                 <div class="footer-toggles">
-                    <label class="footer-toggle-label" style="color: #555;">
-                        <input type="checkbox" id="tentativeCheck"> Tentative
-                    </label>
-                    <label class="footer-toggle-label" style="color: #d9534f;">
-                        <input type="checkbox" id="mandatoryCheck" checked> Mandatory
-                    </label>
+                    <label class="footer-toggle-label" style="color: #555;"><input type="checkbox" id="tentativeCheck"> Tentative</label>
+                    <label class="footer-toggle-label" style="color: #d9534f;"><input type="checkbox" id="mandatoryCheck" checked> Mandatory</label>
                 </div>
                 <div class="modal-actions" style="margin-top: 0;">
                     <button id="cancelBtn" class="btn-cancel">Cancel</button>
@@ -338,7 +377,11 @@
         
         let editingEventId = null;
         
-        const filterState = { classes: [], mandatoryOnly: false };
+        const filterState = { 
+            classes: [], 
+            designators: [], // New designator filter
+            mandatoryOnly: false 
+        };
 
         // --- DOM Elements ---
         const els = {};
@@ -350,12 +393,13 @@
          'dayViewDateDisplay','dayViewTypeDisplay','dayViewList','dayViewAddBtn','dayViewEditControls',
          'ssocCheck','noSchoolCheck', 'pinModal', 'pinInput', 'cancelPinBtn', 'submitPinBtn',
          'mandatoryCheck', 'tentativeCheck', 'standardControls', 'saturdayControls', 'silverCheck',
-         'filterBtn', 'filterModal', 'filterMandatoryCheck', 'clearFiltersBtn', 'closeFilterBtn',
-         'viewLegendBtn'
+         'filterBtn', 'filterModal', 'filterMandatoryCheck', 'clearFiltersBtn', 'closeFilterBtn', 'selectAllFiltersBtn',
+         'viewLegendBtn', 'eventDesignator'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
         const filterClassChecks = document.querySelectorAll('.filter-class-check');
+        const filterDesignatorChecks = document.querySelectorAll('.filter-designator-check'); // New
 
         // --- FIREBASE DATA ---
         async function loadData() {
@@ -419,12 +463,25 @@
         // --- FILTERING HELPER ---
         function getFilteredEvents() {
             return events.filter(evt => {
+                // Mandatory Filter
                 if (filterState.mandatoryOnly && !evt.mandatory) return false;
+                
+                // Class Filter
                 if (filterState.classes.length > 0) {
                     if (!evt.classes || evt.classes.length === 0) return true;
                     const hasMatch = evt.classes.some(c => filterState.classes.includes(c));
                     if (!hasMatch) return false;
                 }
+
+                // Designator/Event Type Filter (NEW)
+                // Logic: If list is empty -> Show All. If list has items -> Only show matches.
+                if (filterState.designators.length > 0) {
+                    // Note: If event has NO designator but user is filtering by types, 
+                    // we usually exclude it unless "Other" captures it or we decide empty = Other.
+                    // For now, strict matching:
+                    if (!evt.designator || !filterState.designators.includes(evt.designator)) return false;
+                }
+
                 return true;
             });
         }
@@ -522,7 +579,7 @@
 
         function renderEventsOnGrid() {
             const eventsByTarget = {};
-            const filteredEvents = getFilteredEvents(); 
+            const filteredEvents = getFilteredEvents(); // USE FILTERED
 
             filteredEvents.forEach(evt => {
                 let targetId;
@@ -626,18 +683,34 @@
         // --- FILTER HANDLERS ---
         els.filterBtn.onclick = () => { els.filterModal.style.display = 'flex'; };
         els.closeFilterBtn.onclick = () => { els.filterModal.style.display = 'none'; };
+        
+        // CLEAR ALL
         els.clearFiltersBtn.onclick = () => {
             filterClassChecks.forEach(cb => cb.checked = false);
+            filterDesignatorChecks.forEach(cb => cb.checked = false);
             els.filterMandatoryCheck.checked = false;
+            updateFilters();
+        };
+
+        // SELECT ALL
+        els.selectAllFiltersBtn.onclick = () => {
+            filterClassChecks.forEach(cb => cb.checked = true);
+            filterDesignatorChecks.forEach(cb => cb.checked = true);
+            // DO NOT select Mandatory, as that restricts. 
+            // We want to show EVERYTHING inclusive.
             updateFilters();
         };
 
         function updateFilters() {
             filterState.classes = [];
             filterClassChecks.forEach(cb => { if (cb.checked) filterState.classes.push(cb.value); });
+            
+            filterState.designators = [];
+            filterDesignatorChecks.forEach(cb => { if (cb.checked) filterState.designators.push(cb.value); });
+
             filterState.mandatoryOnly = els.filterMandatoryCheck.checked;
             
-            if(filterState.classes.length > 0 || filterState.mandatoryOnly) {
+            if(filterState.classes.length > 0 || filterState.mandatoryOnly || filterState.designators.length > 0) {
                 els.filterBtn.classList.add('active-filter');
             } else {
                 els.filterBtn.classList.remove('active-filter');
@@ -646,6 +719,7 @@
         }
 
         filterClassChecks.forEach(cb => cb.addEventListener('change', updateFilters));
+        filterDesignatorChecks.forEach(cb => cb.addEventListener('change', updateFilters)); // Listen to Designators
         els.filterMandatoryCheck.addEventListener('change', updateFilters);
 
 
@@ -719,22 +793,18 @@
             const pO = { 'preflight': 1, 'morning': 2, 'm5': 3, 'other': 4 };
             
             dayEvents.sort((a, b) => {
-                // SSoC always first if present
                 if (a.name === "Special Schedule of Calls") return -1;
                 if (b.name === "Special Schedule of Calls") return 1;
 
                 if (isNoSchool) {
-                    // Just time sort for weekends
                     const tA = a.startTime || "99:99";
                     const tB = b.startTime || "99:99";
                     return tA.localeCompare(tB);
                 } else {
-                    // Standard day: Period then Time
                     const pA = pO[a.period] || 99;
                     const pB = pO[b.period] || 99;
                     if (pA !== pB) return pA - pB;
                     
-                    // Same period, check time
                     const tA = a.startTime || "99:99";
                     const tB = b.startTime || "99:99";
                     return tA.localeCompare(tB);
@@ -772,7 +842,8 @@
             els.eventName.value = ''; els.eventLocation.value = ''; els.startTime.value = ''; els.endTime.value = ''; els.eventNotes.value = '';
             els.allClassesCheck.checked = false; classChecks.forEach(cb => cb.checked = false); els.customTimeCheck.checked = false; 
             els.mandatoryCheck.checked = true; els.tentativeCheck.checked = false;
-            
+            els.eventDesignator.value = "Other"; // Reset Designator
+
             if (eventToEdit) {
                 editingEventId = eventToEdit.id;
                 els.modalTitle.innerText = "Edit Event"; els.saveEventBtn.innerText = "Update Event";
@@ -780,6 +851,7 @@
                 
                 if (eventToEdit.hasOwnProperty('mandatory')) els.mandatoryCheck.checked = eventToEdit.mandatory;
                 if (eventToEdit.hasOwnProperty('tentative')) els.tentativeCheck.checked = eventToEdit.tentative;
+                if (eventToEdit.hasOwnProperty('designator')) els.eventDesignator.value = eventToEdit.designator; // Load Designator
 
                 if(eventToEdit.classes) { eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; }); if(eventToEdit.classes.length === 4) els.allClassesCheck.checked = true; }
                 const isNoSchool = isWeekendOrNoSchool(eventToEdit.date);
@@ -806,28 +878,7 @@
         els.cancelBtn.onclick = () => els.eventModal.style.display = 'none';
         els.closeDayView.onclick = () => els.dayViewModal.style.display = 'none';
         window.onclick = (e) => { if (e.target == els.eventModal) els.eventModal.style.display = "none"; if (e.target == els.dayViewModal) els.dayViewModal.style.display = "none"; if (e.target == els.pinModal) els.pinModal.style.display = "none"; if (e.target == els.filterModal) els.filterModal.style.display = "none"; };
-        
-        // CLEAN MODE TOGGLE LOGIC
-        els.mainHeaderLogo.addEventListener('dblclick', () => { 
-            els.headerActionsLeft.classList.toggle('force-hide'); 
-            els.headerActionsRight.classList.toggle('force-hide'); 
-            
-            // Toggle Clean Mode Legend if Right Actions are hidden
-            if (els.headerActionsRight.classList.contains('force-hide')) {
-                els.cleanModeLegend.classList.add('force-show-flex');
-            } else {
-                els.cleanModeLegend.classList.remove('force-show-flex');
-            }
-
-            // Only hide the Calendar Nav Header if NOT in Month View
-            if (currentView !== 'month') {
-                els.calendarNavHeader.classList.toggle('hidden'); 
-            } else {
-                // In Month View, ensure header is VISIBLE even in clean mode
-                els.calendarNavHeader.classList.remove('hidden');
-            }
-        });
-
+        els.mainHeaderLogo.addEventListener('dblclick', () => { els.headerActionsLeft.classList.toggle('force-hide'); els.headerActionsRight.classList.toggle('force-hide'); els.calendarNavHeader.classList.toggle('hidden'); if (els.headerActionsRight.classList.contains('force-hide')) els.cleanModeLegend.classList.add('force-show-flex'); else els.cleanModeLegend.classList.remove('force-show-flex'); });
         els.weekViewBtn.addEventListener('click', () => { currentView = (currentView === 'month') ? 'week' : 'month'; els.weekViewBtn.innerText = (currentView === 'month') ? "Week View" : "Month View"; renderCalendar(); });
         els.prevBtn.addEventListener('click', () => { if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() - 1); else currentDate.setDate(currentDate.getDate() - 7); renderCalendar(); });
         els.nextBtn.addEventListener('click', () => { if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() + 1); else currentDate.setDate(currentDate.getDate() + 7); renderCalendar(); });
@@ -843,7 +894,8 @@
                 startTime: hasTimeframe ? els.startTime.value : null, endTime: hasTimeframe ? els.endTime.value : null, 
                 classes: selectedClasses, 
                 mandatory: els.mandatoryCheck.checked,
-                tentative: els.tentativeCheck.checked 
+                tentative: els.tentativeCheck.checked,
+                designator: els.eventDesignator.value // Save Designator
             };
             els.saveEventBtn.innerText = "Saving...";
             try { if (editingEventId) await updateDoc(doc(db, "events", editingEventId), eventData); else await addDoc(collection(db, "events"), eventData); await loadData(); els.eventModal.style.display = 'none'; } catch (e) { alert("Error saving event: " + e.message); } finally { els.saveEventBtn.innerText = "Save"; }
