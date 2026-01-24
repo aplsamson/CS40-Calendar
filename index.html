@@ -117,14 +117,16 @@
 
         /* MOBILE DAY VIEW OVERRIDES */
         @media (max-width: 768px) {
-            .calendar-grid { grid-template-columns: 1fr; } /* 1 Column */
-            .grid-header-cell { display: none; } /* Hide Mon/Tue/etc bar */
-            .week-view-btn { display: none; } /* Hide view toggle, lock to Day View */
+            .calendar-grid { grid-template-columns: 1fr; } 
+            .grid-header-cell { display: none; } 
+            .calendar-container { border-right: 2px solid black; } 
+            
+            /* HIDE BUTTONS ON MOBILE */
+            .header-actions-left, .header-actions-right { display: none !important; }
+            
+            /* Smaller Title on Mobile */
             .header-title { font-size: 1.5rem; } 
             .header-logo { height: 3rem; }
-            .calendar-container { border-right: 2px solid black; } /* Close box */
-            /* Legend adjustment for mobile */
-            .clean-mode-legend { flex-direction: column; gap: 10px; right: 10px; top: 70%; width: 90%; }
         }
 
         /* MODALS */
@@ -384,6 +386,7 @@
         let isEditMode = false;
         let currentDayViewKey = null; 
         
+        // DEFAULT TO WEEK VIEW
         let currentView = 'week'; 
         
         let editingEventId = null;
@@ -491,14 +494,18 @@
         // --- FILTERING HELPER ---
         function getFilteredEvents() {
             return events.filter(evt => {
+                // Mandatory Filter
                 if (filterState.mandatoryOnly && !evt.mandatory) return false;
                 
+                // Class Filter
                 if (filterState.classes.length > 0) {
                     if (!evt.classes || evt.classes.length === 0) return true;
                     const hasMatch = evt.classes.some(c => filterState.classes.includes(c));
                     if (!hasMatch) return false;
                 }
 
+                // Designator/Event Type Filter (NEW)
+                // Logic: If list is empty -> Show All. If list has items -> Only show matches.
                 if (filterState.designators.length > 0) {
                     if (!evt.designator || !filterState.designators.includes(evt.designator)) return false;
                 }
@@ -550,9 +557,10 @@
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             const startOfWeek = new Date(d.setDate(diff));
+            const endOfWeek = new Date(d.setDate(diff + 6));
             
             const options = { month: 'short', day: 'numeric' };
-            els.mainHeaderTitle.innerText = `Week of ${startOfWeek.toLocaleDateString('en-US', options)}`;
+            els.mainHeaderTitle.innerText = `Week of ${startOfWeek.toLocaleDateString('en-US', options)} - ${endOfWeek.toLocaleDateString('en-US', { ...options, year: 'numeric'})}`;
             
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             els.monthYear.innerText = `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getFullYear()}`;
@@ -580,16 +588,19 @@
             const dateKey = getFormattedDate(currentDate);
             const dayNum = currentDate.getDate();
             
-            // Title updates for Day View
-            const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
-            els.mainHeaderTitle.innerText = currentDate.toLocaleDateString('en-US', options);
-            els.monthYear.innerText = ""; // Hide Nav title on mobile day view
+            // Title updates for Day View - Sets BLUE HEADER TEXT
+            const options = { month: 'long', day: 'numeric' };
+            els.monthYear.innerText = currentDate.toLocaleDateString('en-US', options);
+            
+            // Sets Main Header Title
+            const mainOptions = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+            els.mainHeaderTitle.innerText = currentDate.toLocaleDateString('en-US', mainOptions);
 
             els.calendarGrid.innerHTML = "";
             
             const c = document.createElement('div'); 
             c.className = 'day-cell week-view';
-            c.style.minHeight = "60vh"; // Ensure it fills screen well
+            c.style.minHeight = "60vh"; 
             
             buildDayCellContent(c, dateKey, dayNum);
             
@@ -679,6 +690,7 @@
             const chip = document.createElement('div');
             chip.className = 'event-chip';
             
+            // Name handling
             let displayText = evt.name + (evt.tentative ? "*" : "");
 
             if (evt.name === "Special Schedule of Calls") {
@@ -696,9 +708,11 @@
                 chip.innerHTML = content;
             }
 
+            // TENTATIVE STYLING
             if (evt.tentative) {
                 chip.style.backgroundColor = "white";
                 chip.style.color = "black";
+                // Determine Border Color
                 if (!evt.classes || evt.classes.length === 0 || evt.classes.length === 4) {
                     chip.style.border = "2px solid black";
                 } else if (evt.classes.length === 1) {
