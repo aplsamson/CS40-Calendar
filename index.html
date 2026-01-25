@@ -33,7 +33,8 @@
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
             display: none; background: white; padding: 15px 25px; border-radius: 20px; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-            z-index: 20; min-width: 200px;
+            z-index: 30; /* Higher z-index to ensure it sits on top */
+            min-width: 200px;
             flex-direction: row; gap: 25px; 
         }
         .clean-mode-legend.visible { display: flex; }
@@ -877,6 +878,20 @@
             }
             return chip;
         }
+
+        // --- VIEW LEGEND TOGGLE ---
+        els.viewLegendBtn.addEventListener('click', () => {
+            const isVisible = els.cleanModeLegend.classList.contains('visible');
+            if (isVisible) {
+                els.cleanModeLegend.classList.remove('visible');
+                els.headerActionsRight.classList.remove('hidden');
+                els.viewLegendBtn.innerText = "View Legend";
+            } else {
+                els.cleanModeLegend.classList.add('visible');
+                els.headerActionsRight.classList.add('hidden');
+                els.viewLegendBtn.innerText = "Hide Legend";
+            }
+        });
 
         // --- FILTER HANDLERS ---
         els.filterBtn.onclick = () => { els.filterModal.style.display = 'flex'; };
