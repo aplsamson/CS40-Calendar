@@ -187,6 +187,11 @@
         
         .force-hide { display: none !important; }
         .force-show-flex { display: flex !important; }
+        
+        /* RECURRING SECTION */
+        #recurringOptions { 
+            background: #f8f9fa; border-left: 3px solid #003087; padding: 10px 15px; margin-bottom: 15px; border-radius: 0 4px 4px 0;
+        }
     </style>
 </head>
 <body>
@@ -259,6 +264,7 @@
     <div id="filterModal" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title">Filter Events</h3>
+            
             <div class="filter-section">
                 <h4>By Class</h4>
                 <div class="checkbox-group">
@@ -268,6 +274,7 @@
                     <label><input type="checkbox" value="29" class="filter-class-check"> 29</label>
                 </div>
             </div>
+
             <div class="filter-section">
                 <h4>By Event Type</h4>
                 <div class="designator-list">
@@ -285,12 +292,14 @@
                     <label><input type="checkbox" value="Other" class="filter-designator-check"> Other</label>
                 </div>
             </div>
+
             <div class="filter-section">
                 <h4>Status</h4>
                 <div class="checkbox-group">
                     <label><input type="checkbox" id="filterMandatoryCheck"> Mandatory Only</label>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <div class="filter-left-actions">
                     <button id="clearFiltersBtn" class="btn-cancel" style="background: #d9534f; color: white;">Clear All</button>
@@ -333,7 +342,7 @@
             
             <div class="form-group"><label style="font-weight: normal; cursor:pointer;"><input type="checkbox" id="recurringCheck"> Recurring Event</label></div>
             
-            <div id="recurringOptions" style="display:none; background: #f8f9fa; border-left: 3px solid #003087; padding: 10px 15px; margin-bottom: 15px; border-radius: 0 4px 4px 0;">
+            <div id="recurringOptions" style="display:none;">
                 <div class="form-group">
                     <label>Frequency</label>
                     <select id="recurrenceFreq" class="form-control">
@@ -424,9 +433,11 @@
         let isEditMode = false;
         let currentDayViewKey = null; 
         
+        // DEFAULT TO WEEK VIEW
         let currentView = 'week'; 
+        
         let editingEventId = null;
-        let eventToDelete = null; // for custom delete modal
+        let eventToDelete = null; 
         
         const filterState = { 
             classes: [], 
@@ -542,9 +553,18 @@
         }
 
         function renderCalendar() {
-            if (currentView === 'month') { renderMonthView(); } 
-            else if (currentView === 'day') { renderDayView(); } 
-            else { renderWeekView(); }
+            // FIX: Ensure button text is always correct based on current view
+            if (currentView === 'month') { 
+                els.weekViewBtn.innerText = "See Weekly View";
+                renderMonthView(); 
+            } 
+            else if (currentView === 'day') { 
+                renderDayView(); 
+            } 
+            else { 
+                els.weekViewBtn.innerText = "See Monthly View";
+                renderWeekView(); 
+            }
         }
 
         function renderMonthView() {
@@ -615,9 +635,11 @@
             const dateKey = getFormattedDate(currentDate);
             const dayNum = currentDate.getDate();
             
+            // 1. WHITE HEADER: Full Date
             const mainOptions = { month: 'long', day: 'numeric', year: 'numeric' };
             els.mainHeaderTitle.innerText = currentDate.toLocaleDateString('en-US', mainOptions);
             
+            // 2. BLUE HEADER: Day of Week
             const options = { weekday: 'long' };
             els.monthYear.innerText = currentDate.toLocaleDateString('en-US', options);
 
@@ -681,26 +703,31 @@
                 if (!targetEl) return;
                 const evts = eventsByTarget[targetId];
                 
-                // SORTING LOGIC 
+                // UPDATED SORTING LOGIC:
                 // 1. SSoC top
-                // 2. UNTIMED Other (High Prio) -> period='other' & !startTime
-                // 3. Timed events (earliest)
-                // 4. Untimed general (bottom)
+                // 2. Untimed "Other" (High Prio)
+                // 3. Timed Events (Earliest)
+                // 4. Everything else (Bottom)
                 evts.sort((a, b) => {
+                    // 1. SSoC
                     if (a.name === "Special Schedule of Calls") return -1;
                     if (b.name === "Special Schedule of Calls") return 1;
 
-                    const isUntimedOtherA = (a.period === 'other') && !a.startTime;
-                    const isUntimedOtherB = (b.period === 'other') && !b.startTime;
+                    // 2. Untimed Other Priority
+                    // Check if event is in "Other" period AND has no start time
+                    const isUntimedOtherA = (a.period === 'other' && !a.startTime);
+                    const isUntimedOtherB = (b.period === 'other' && !b.startTime);
 
                     if (isUntimedOtherA && !isUntimedOtherB) return -1;
                     if (!isUntimedOtherA && isUntimedOtherB) return 1;
 
+                    // 3. Normal Time Sort
                     const tA = a.startTime || "99:99";
                     const tB = b.startTime || "99:99";
                     return tA.localeCompare(tB);
                 });
 
+                // OVERFLOW LIMIT CHECK
                 const isExtendedView = targetId.includes('weekend');
                 const limit = isExtendedView ? 6 : 2;
                 const showAll = currentView === 'week' || currentView === 'day';
@@ -765,8 +792,8 @@
         });
 
         els.weekViewBtn.addEventListener('click', () => { 
-            if (currentView === 'month') { currentView = 'week'; els.weekViewBtn.innerText = "See Monthly View"; } 
-            else { currentView = 'month'; els.weekViewBtn.innerText = "See Weekly View"; }
+            if (currentView === 'month') { currentView = 'week'; } 
+            else { currentView = 'month'; }
             renderCalendar(); 
         });
         
@@ -974,76 +1001,17 @@
             const date = els.eventDate.value; const name = els.eventName.value; if (!date || !name) { alert("Please fill in Date and Event Name"); return; }
             const selectedClasses = []; document.querySelectorAll('.class-check:checked').forEach(cb => selectedClasses.push(cb.value));
             const isNoSchool = isWeekendOrNoSchool(date); const hasTimeframe = isNoSchool || els.eventPeriod.value === 'other' || els.customTimeCheck.checked;
-            
-            const baseEventData = { 
-                name, location: els.eventLocation.value, notes: els.eventNotes.value, 
+            const eventData = { 
+                date, name, location: els.eventLocation.value, notes: els.eventNotes.value, 
                 period: isNoSchool ? 'weekend' : els.eventPeriod.value, 
                 startTime: hasTimeframe ? els.startTime.value : null, endTime: hasTimeframe ? els.endTime.value : null, 
                 classes: selectedClasses, 
-                mandatory: els.mandatoryCheck.checked, tentative: els.tentativeCheck.checked,
-                designator: els.eventDesignator.value 
+                mandatory: els.mandatoryCheck.checked,
+                tentative: els.tentativeCheck.checked,
+                designator: els.eventDesignator.value // Save Designator
             };
-
             els.saveEventBtn.innerText = "Saving...";
-            
-            try {
-                if (editingEventId) {
-                    await updateDoc(doc(db, "events", editingEventId), { ...baseEventData, date: date });
-                } else {
-                    if (els.recurringCheck.checked) {
-                        const freq = els.recurrenceFreq.value;
-                        const endDate = new Date(els.recurrenceEnd.value);
-                        if (!els.recurrenceEnd.value || isNaN(endDate)) { alert("End date required for recurring events."); els.saveEventBtn.innerText = "Save"; return; }
-                        
-                        const seriesId = Date.now().toString() + Math.random().toString().slice(2, 8);
-                        const batch = writeBatch(db);
-                        
-                        let currentLoopDate = new Date(date);
-                        // Add manual offset for local timezone handling if needed, usually new Date(input) is UTC 00:00 or Local. 
-                        // Simplest: use input value string and increment.
-                        // Actually, standard date increment logic:
-                        // Be careful of timezone shifts. 
-                        // Re-parsing YYYY-MM-DD string is safer.
-                        
-                        const daysSelected = [];
-                        document.querySelectorAll('.recur-day:checked').forEach(cb => daysSelected.push(parseInt(cb.value)));
-
-                        let count = 0;
-                        // Timezone safe loop
-                        // Convert start string to Date object at noon to avoid DST skips
-                        let loopDateObj = new Date(date + "T12:00:00");
-                        let endDateObj = new Date(els.recurrenceEnd.value + "T12:00:00");
-
-                        while (loopDateObj <= endDateObj && count < 365) { 
-                            let shouldAdd = false;
-                            if (freq === 'daily') shouldAdd = true;
-                            else if (freq === 'weekly') {
-                                if (daysSelected.includes(loopDateObj.getDay())) shouldAdd = true;
-                            }
-                            else if (freq === 'monthly') {
-                                if (loopDateObj.getDate() === new Date(date + "T12:00:00").getDate()) shouldAdd = true;
-                            }
-                            else if (freq === 'yearly') {
-                                if (loopDateObj.getDate() === new Date(date + "T12:00:00").getDate() && loopDateObj.getMonth() === new Date(date + "T12:00:00").getMonth()) shouldAdd = true;
-                            }
-
-                            if (shouldAdd) {
-                                const dateStr = getFormattedDate(loopDateObj);
-                                const newRef = doc(collection(db, "events"));
-                                batch.set(newRef, { ...baseEventData, date: dateStr, seriesId: seriesId });
-                            }
-
-                            loopDateObj.setDate(loopDateObj.getDate() + 1);
-                            count++;
-                        }
-                        await batch.commit();
-
-                    } else {
-                        await addDoc(collection(db, "events"), { ...baseEventData, date: date });
-                    }
-                }
-                await loadData(); els.eventModal.style.display = 'none'; 
-            } catch (e) { alert("Error saving event: " + e.message); } finally { els.saveEventBtn.innerText = "Save"; }
+            try { if (editingEventId) await updateDoc(doc(db, "events", editingEventId), eventData); else await addDoc(collection(db, "events"), eventData); await loadData(); els.eventModal.style.display = 'none'; } catch (e) { alert("Error saving event: " + e.message); } finally { els.saveEventBtn.innerText = "Save"; }
         });
 
         loadData();
