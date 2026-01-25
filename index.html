@@ -211,7 +211,7 @@
 
     <div class="top-container">
         <div class="header-actions-left" id="headerActionsLeft">
-            <button id="weekViewBtn" class="header-btn week-view-btn">Month View</button>
+            <button id="weekViewBtn" class="header-btn week-view-btn">See Monthly View</button>
             <button id="viewLegendBtn" class="header-btn legend-btn" style="margin-top: 10px;">View Legend</button>
         </div>
         <div class="main-header">
@@ -267,16 +267,18 @@
             <div class="filter-section">
                 <h4>By Event Type</h4>
                 <div class="designator-list">
+                    <label><input type="checkbox" value="Birthday" class="filter-designator-check"> Birthday</label>
                     <label><input type="checkbox" value="Briefing" class="filter-designator-check"> Briefing</label>
                     <label><input type="checkbox" value="Checkpoint" class="filter-designator-check"> Checkpoint</label>
                     <label><input type="checkbox" value="Fitness Test" class="filter-designator-check"> Fitness Test</label>
                     <label><input type="checkbox" value="Formation" class="filter-designator-check"> Formation</label>
+                    <label><input type="checkbox" value="Holiday" class="filter-designator-check"> Holiday</label>
                     <label><input type="checkbox" value="IC Competition" class="filter-designator-check"> IC Competition</label>
                     <label><input type="checkbox" value="Morale Event" class="filter-designator-check"> Morale Event</label>
-                    <label><input type="checkbox" value="Other" class="filter-designator-check"> Other</label>
                     <label><input type="checkbox" value="Squadron Time" class="filter-designator-check"> Squadron Time</label>
                     <label><input type="checkbox" value="Tasker" class="filter-designator-check"> Tasker</label>
                     <label><input type="checkbox" value="Training" class="filter-designator-check"> Training</label>
+                    <label><input type="checkbox" value="Other" class="filter-designator-check"> Other</label>
                 </div>
             </div>
 
@@ -302,28 +304,31 @@
             <h3 class="modal-title" id="modalTitle">Add Event</h3>
             <div class="form-group"><label>Date</label><input type="date" id="eventDate" class="form-control"></div>
             <div class="form-group"><label>Event Name</label><input type="text" id="eventName" class="form-control" placeholder="e.g. Current Event Briefs"></div>
+            
+            <div class="form-group">
+                <label>Event Type</label>
+                <select id="eventDesignator" class="form-control">
+                    <option value="Birthday">Birthday</option>
+                    <option value="Briefing">Briefing</option>
+                    <option value="Checkpoint">Checkpoint</option>
+                    <option value="Fitness Test">Fitness Test</option>
+                    <option value="Formation">Formation</option>
+                    <option value="Holiday">Holiday</option>
+                    <option value="IC Competition">IC Competition</option>
+                    <option value="Morale Event">Morale Event</option>
+                    <option value="Squadron Time">Squadron Time</option>
+                    <option value="Tasker">Tasker</option>
+                    <option value="Training">Training</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
             <div class="form-group"><label>Location (Optional)</label><input type="text" id="eventLocation" class="form-control" placeholder="e.g. SAR"></div>
             <div class="form-group" id="periodGroup"><label>Period</label><select id="eventPeriod" class="form-control"><option value="preflight">Preflight</option><option value="morning">Morning Period</option><option value="m5" id="opt-m5">M4.5</option><option value="other">Other</option></select></div>
             <div class="form-group" id="customTimeCheckContainer"><label style="font-weight: normal; cursor:pointer;"><input type="checkbox" id="customTimeCheck"> Enable Custom Time</label></div>
             <div class="form-group" id="timeframeGroup" style="display:none;"><label>Timeframe</label><div class="time-inputs"><input type="time" id="startTime" class="form-control"><span style="align-self:center;">to</span><input type="time" id="endTime" class="form-control"></div></div>
             <div class="form-group"><label>Class Attendance</label><div class="checkbox-group"><label class="checkbox-all"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
             
-            <div class="form-group">
-                <label>Event Type</label>
-                <select id="eventDesignator" class="form-control">
-                    <option value="Briefing">Briefing</option>
-                    <option value="Checkpoint">Checkpoint</option>
-                    <option value="Fitness Test">Fitness Test</option>
-                    <option value="Formation">Formation</option>
-                    <option value="IC Competition">IC Competition</option>
-                    <option value="Morale Event">Morale Event</option>
-                    <option value="Other">Other</option>
-                    <option value="Squadron Time">Squadron Time</option>
-                    <option value="Tasker">Tasker</option>
-                    <option value="Training">Training</option>
-                </select>
-            </div>
-
             <div class="form-group"><label>Notes</label><textarea id="eventNotes" class="form-control" placeholder="Optional details..."></textarea></div>
             <div class="modal-footer">
                 <div class="footer-toggles">
@@ -365,6 +370,7 @@
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCyoUxG8Qfc6g5kwgqRK0Q2J0k1tXtQeVs",
             authDomain: "cs40-calendar.firebaseapp.com",
@@ -588,13 +594,13 @@
             const dateKey = getFormattedDate(currentDate);
             const dayNum = currentDate.getDate();
             
-            // Title updates for Day View - Sets BLUE HEADER TEXT
-            const options = { month: 'long', day: 'numeric' };
-            els.monthYear.innerText = currentDate.toLocaleDateString('en-US', options);
-            
-            // Sets Main Header Title
-            const mainOptions = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+            // 1. WHITE HEADER: Full Date (January 25, 2026)
+            const mainOptions = { month: 'long', day: 'numeric', year: 'numeric' };
             els.mainHeaderTitle.innerText = currentDate.toLocaleDateString('en-US', mainOptions);
+            
+            // 2. BLUE HEADER: Day of Week (Sunday)
+            const options = { weekday: 'long' };
+            els.monthYear.innerText = currentDate.toLocaleDateString('en-US', options);
 
             els.calendarGrid.innerHTML = "";
             
@@ -604,7 +610,6 @@
             
             buildDayCellContent(c, dateKey, dayNum);
             
-            // Remove the day number/type from inside the cell since it's in the header now
             const numEl = c.querySelector('.date-number');
             if(numEl) numEl.style.display = 'none';
             
@@ -657,10 +662,24 @@
                 if (!targetEl) return;
                 const evts = eventsByTarget[targetId];
                 
-                // SORTING LOGIC
+                // UPDATED SORTING LOGIC
                 evts.sort((a, b) => {
+                    // 1. SSoC top
                     if (a.name === "Special Schedule of Calls") return -1;
                     if (b.name === "Special Schedule of Calls") return 1;
+
+                    // 2. Untimed "Other" events (High Priority)
+                    // We check if it is in "other" period AND has no startTime
+                    // Note: 'a.period' might be "weekend" if it's a weekend, so we check general untimed status too if preferred,
+                    // but prompt said "during 'Other' period". 
+                    const isUntimedOtherA = (a.period === 'other') && !a.startTime;
+                    const isUntimedOtherB = (b.period === 'other') && !b.startTime;
+
+                    if (isUntimedOtherA && !isUntimedOtherB) return -1;
+                    if (!isUntimedOtherA && isUntimedOtherB) return 1;
+
+                    // 3. Time Sort (Earliest to Latest)
+                    // If no start time, push to bottom (using 99:99)
                     const tA = a.startTime || "99:99";
                     const tB = b.startTime || "99:99";
                     return tA.localeCompare(tB);
@@ -935,8 +954,39 @@
         els.cancelBtn.onclick = () => els.eventModal.style.display = 'none';
         els.closeDayView.onclick = () => els.dayViewModal.style.display = 'none';
         window.onclick = (e) => { if (e.target == els.eventModal) els.eventModal.style.display = "none"; if (e.target == els.dayViewModal) els.dayViewModal.style.display = "none"; if (e.target == els.pinModal) els.pinModal.style.display = "none"; if (e.target == els.filterModal) els.filterModal.style.display = "none"; };
-        els.mainHeaderLogo.addEventListener('dblclick', () => { els.headerActionsLeft.classList.toggle('force-hide'); els.headerActionsRight.classList.toggle('force-hide'); els.calendarNavHeader.classList.toggle('hidden'); if (els.headerActionsRight.classList.contains('force-hide')) els.cleanModeLegend.classList.add('force-show-flex'); else els.cleanModeLegend.classList.remove('force-show-flex'); });
-        els.weekViewBtn.addEventListener('click', () => { currentView = (currentView === 'month') ? 'week' : 'month'; els.weekViewBtn.innerText = (currentView === 'month') ? "Week View" : "Month View"; renderCalendar(); });
+        
+        // CLEAN MODE TOGGLE LOGIC
+        els.mainHeaderLogo.addEventListener('dblclick', () => { 
+            els.headerActionsLeft.classList.toggle('force-hide'); 
+            els.headerActionsRight.classList.toggle('force-hide'); 
+            
+            // Toggle Clean Mode Legend if Right Actions are hidden
+            if (els.headerActionsRight.classList.contains('force-hide')) {
+                els.cleanModeLegend.classList.add('force-show-flex');
+            } else {
+                els.cleanModeLegend.classList.remove('force-show-flex');
+            }
+
+            // Only hide the Calendar Nav Header if NOT in Month View
+            if (currentView !== 'month') {
+                els.calendarNavHeader.classList.toggle('hidden'); 
+            } else {
+                // In Month View, ensure header is VISIBLE even in clean mode
+                els.calendarNavHeader.classList.remove('hidden');
+            }
+        });
+
+        els.weekViewBtn.addEventListener('click', () => { 
+            if (currentView === 'month') {
+                currentView = 'week';
+                els.weekViewBtn.innerText = "See Monthly View";
+            } else {
+                currentView = 'month';
+                els.weekViewBtn.innerText = "See Weekly View";
+            }
+            renderCalendar(); 
+        });
+        
         els.prevBtn.addEventListener('click', () => { 
             if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() - 1); 
             else if (currentView === 'day') currentDate.setDate(currentDate.getDate() - 1);
