@@ -348,12 +348,12 @@
                 </select>
             </div>
 
-            <div class="form-group"><label>Location (Optional)</label><input type="text" id="eventLocation" class="form-control" placeholder="e.g. SAR"></div>
+            <div class="form-group" id="locationGroup"><label>Location (Optional)</label><input type="text" id="eventLocation" class="form-control" placeholder="e.g. SAR"></div>
             <div class="form-group" id="periodGroup"><label>Period</label><select id="eventPeriod" class="form-control"><option value="preflight">Preflight</option><option value="morning">Morning Period</option><option value="m5" id="opt-m5">M4.5</option><option value="other">Other</option></select></div>
             <div class="form-group" id="customTimeCheckContainer"><label style="font-weight: normal; cursor:pointer;"><input type="checkbox" id="customTimeCheck"> Enable Custom Time</label></div>
             <div class="form-group" id="timeframeGroup" style="display:none;"><label>Timeframe</label><div class="time-inputs"><input type="time" id="startTime" class="form-control"><span style="align-self:center;">to</span><input type="time" id="endTime" class="form-control"></div></div>
             
-            <div class="form-group" style="margin-top: 15px;">
+            <div class="form-group" style="margin-top: 15px;" id="recurrenceContainer">
                 <label style="font-weight: normal; cursor: pointer; color: #003087;">
                     <input type="checkbox" id="recurrenceCheck"> Repeat Event (Recurring)
                 </label>
@@ -387,11 +387,11 @@
                 </div>
             </div>
             
-            <div class="form-group"><label>Class Attendance</label><div class="checkbox-group"><label class="checkbox-all"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
+            <div class="form-group" id="classGroup"><label id="classLabel">Class Attendance</label><div class="checkbox-group"><label class="checkbox-all" id="classAllLabel"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
             
             <div class="form-group"><label>Notes</label><textarea id="eventNotes" class="form-control" placeholder="Optional details..."></textarea></div>
             <div class="modal-footer">
-                <div class="footer-toggles">
+                <div class="footer-toggles" id="footerToggles">
                     <label class="footer-toggle-label" style="color: #555;"><input type="checkbox" id="tentativeCheck"> Tentative</label>
                     <label class="footer-toggle-label" style="color: #d9534f;"><input type="checkbox" id="mandatoryCheck" checked> Mandatory</label>
                 </div>
@@ -474,7 +474,8 @@
          'mandatoryCheck', 'tentativeCheck', 'standardControls', 'saturdayControls', 'silverCheck',
          'filterBtn', 'filterModal', 'filterMandatoryCheck', 'clearFiltersBtn', 'closeFilterBtn', 'selectAllFiltersBtn',
          'viewLegendBtn', 'eventDesignator',
-         'recurrenceCheck', 'recurrenceOptions', 'recurrenceFreq', 'recurrenceDaysGroup', 'recurrenceEndDate'
+         'recurrenceCheck', 'recurrenceOptions', 'recurrenceFreq', 'recurrenceDaysGroup', 'recurrenceEndDate',
+         'locationGroup', 'classGroup', 'footerToggles', 'recurrenceContainer', 'classAllLabel', 'classLabel'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -496,10 +497,65 @@
                 const silverSnapshot = await getDocs(collection(db, "silverDays"));
                 silverDays = [];
                 silverSnapshot.forEach((doc) => silverDays.push(doc.id));
+                
+                // AUTO CLEANUP of EXPIRED BIRTHDAY SERIES
+                await cleanupExpiredBirthdays();
 
                 // On initial load, update view based on mobile check
                 updateViewBasedOnScreen();
             } catch (e) { console.error(e); alert("Data load error: " + e.message); }
+        }
+        
+        // --- CLEANUP FUNCTION ---
+        async function cleanupExpiredBirthdays() {
+            // Group birthdays by Recurrence ID
+            const birthdayGroups = {};
+            events.forEach(e => {
+                if (e.designator === 'Birthday' && e.recurrenceId) {
+                    if (!birthdayGroups[e.recurrenceId]) birthdayGroups[e.recurrenceId] = [];
+                    birthdayGroups[e.recurrenceId].push(e);
+                }
+            });
+
+            const batch = writeBatch(db);
+            let hasDeletions = false;
+            const now = new Date();
+
+            for (const rId in birthdayGroups) {
+                const groupEvents = birthdayGroups[rId];
+                if (groupEvents.length === 0) continue;
+                
+                // Determine Class Year from the first event (assuming series is consistent)
+                const sample = groupEvents[0];
+                if (!sample.classes || sample.classes.length === 0) continue;
+                
+                let maxClassYear = 0;
+                sample.classes.forEach(c => {
+                    const y = 2000 + parseInt(c);
+                    if (y > maxClassYear) maxClassYear = y;
+                });
+
+                // Grad Date: June 1st of Class Year
+                const gradDate = new Date(maxClassYear, 5, 1); // Month 5 is June
+                
+                // If we are past graduation, delete the WHOLE series from DB
+                if (now > gradDate) {
+                    groupEvents.forEach(evt => {
+                        batch.delete(doc(db, "events", evt.id));
+                    });
+                    hasDeletions = true;
+                    console.log(`Cleaning up expired birthday series for Class of ${maxClassYear}`);
+                }
+            }
+
+            if (hasDeletions) {
+                await batch.commit();
+                // We deleted from DB, but local 'events' array is now stale. 
+                // Reloading data would be safest, but to avoid infinite loops, we just filter local.
+                const eventsSnapshot = await getDocs(collection(db, "events"));
+                events = [];
+                eventsSnapshot.forEach((doc) => events.push({ ...doc.data(), id: doc.id }));
+            }
         }
 
         function updateViewBasedOnScreen() {
@@ -948,14 +1004,34 @@
                     let locationHtml = evt.location ? `<p><strong>Location:</strong> ${evt.location}</p>` : "";
                     
                     let nameDisplay = evt.name + (evt.tentative ? "*" : "");
+                    
+                    // CUSTOM BIRTHDAY DISPLAY
+                    if (evt.designator === 'Birthday') {
+                        timeDisplay = ""; // Hide time
+                        locationHtml = ""; // Hide location
+                        attendanceStr = `Class Year: ${attendanceStr}`; // Label Change
+                    } else if (evt.designator === 'Holiday') {
+                        timeDisplay = "";
+                        locationHtml = "";
+                        attendanceStr = "All"; // Force display All for holidays if data missing
+                    }
 
-                    let leftCol = `<div class="day-view-info"><h4>${nameDisplay}</h4><p><strong>Time:</strong> ${timeDisplay}</p>${locationHtml}<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
+                    // Render Fields only if they exist/are relevant
+                    let leftCol = `<div class="day-view-info"><h4>${nameDisplay}</h4>`;
+                    if (timeDisplay) leftCol += `<p><strong>Time:</strong> ${timeDisplay}</p>`;
+                    if (locationHtml) leftCol += locationHtml;
+                    if (evt.designator === 'Birthday') {
+                         leftCol += `<p><strong>${attendanceStr}</strong></p>`; // Special formatting
+                    } else {
+                         leftCol += `<p><strong>Attendance:</strong> ${attendanceStr}</p>`;
+                    }
+
                     if (isEditMode) {
                         leftCol += `<button class="action-btn-sm edit-btn" style="display:inline-block;">Edit</button>
                                     <button class="action-btn-sm delete-btn" style="display:inline-block;">Delete</button>`;
                         
-                        // Add Delete Series button if it's recurring
-                        if (evt.recurrenceId) {
+                        // Add Delete Series button for standard recurring events (NOT Birthday/Holiday)
+                        if (evt.recurrenceId && evt.designator !== 'Birthday' && evt.designator !== 'Holiday') {
                             leftCol += `<button class="action-btn-sm delete-series-btn" style="display:inline-block; margin-left: 5px;">Delete Series</button>`;
                         }
                     }
@@ -966,16 +1042,34 @@
                     if (isEditMode) {
                         item.querySelector('.edit-btn').onclick = () => { els.dayViewModal.style.display = 'none'; openAddModal(dateKey, evt); };
                         
-                        // Delete Single
-                        item.querySelector('.delete-btn').onclick = async () => { 
-                            if(confirm("Delete this single event?")) { 
-                                await deleteDoc(doc(db, "events", evt.id)); 
-                                await loadData(); 
-                                openDayView(dateKey, dayType); 
-                            } 
+                        // Delete Button Logic
+                        const delBtn = item.querySelector('.delete-btn');
+                        
+                        delBtn.onclick = async () => { 
+                            // AUTO-DELETE SERIES for Birthday/Holiday
+                            if (evt.recurrenceId && (evt.designator === 'Birthday' || evt.designator === 'Holiday')) {
+                                if(confirm("Delete this " + evt.designator + "? This will remove all future occurrences.")) {
+                                    try {
+                                        const q = query(collection(db, "events"), where("recurrenceId", "==", evt.recurrenceId));
+                                        const querySnapshot = await getDocs(q);
+                                        const batch = writeBatch(db);
+                                        querySnapshot.forEach((doc) => { batch.delete(doc.ref); });
+                                        await batch.commit();
+                                        await loadData();
+                                        openDayView(dateKey, dayType);
+                                    } catch (err) { alert("Error deleting: " + err.message); }
+                                }
+                            } else {
+                                // Standard Delete
+                                if(confirm("Delete this single event?")) { 
+                                    await deleteDoc(doc(db, "events", evt.id)); 
+                                    await loadData(); 
+                                    openDayView(dateKey, dayType); 
+                                }
+                            }
                         };
 
-                        // Delete Series (if applicable)
+                        // Delete Series (Standard)
                         const seriesBtn = item.querySelector('.delete-series-btn');
                         if (seriesBtn) {
                             seriesBtn.onclick = async () => {
@@ -1070,7 +1164,65 @@
             }
         });
 
+        // --- NEW: SPECIAL EVENT TYPE VISIBILITY LOGIC ---
+        function handleDesignatorChange() {
+            const val = els.eventDesignator.value;
+            
+            // 1. HOLIDAY: Hide everything
+            if (val === 'Holiday') {
+                els.locationGroup.style.display = 'none';
+                els.periodGroup.style.display = 'none';
+                els.customTimeCheckContainer.style.display = 'none';
+                els.timeframeGroup.style.display = 'none';
+                els.classGroup.style.display = 'none';
+                els.footerToggles.style.display = 'none';
+                els.recurrenceContainer.style.display = 'none';
+            }
+            // 2. BIRTHDAY: Show Class, Hide Others, Disable "All"
+            else if (val === 'Birthday') {
+                els.locationGroup.style.display = 'none';
+                els.periodGroup.style.display = 'none';
+                els.customTimeCheckContainer.style.display = 'none';
+                els.timeframeGroup.style.display = 'none';
+                els.footerToggles.style.display = 'none';
+                els.recurrenceContainer.style.display = 'none';
+                
+                // Show Class, Hide "All" Label
+                els.classGroup.style.display = 'block';
+                els.classAllLabel.style.display = 'none';
+                els.classLabel.innerText = "Class Year"; // Change Label
+                els.allClassesCheck.checked = false; 
+                classChecks.forEach(cb => cb.checked = false); 
+            } 
+            // 3. OTHER: Show everything standard
+            else {
+                els.locationGroup.style.display = 'block';
+                els.classGroup.style.display = 'block';
+                els.classAllLabel.style.display = 'inline-block';
+                els.classLabel.innerText = "Class Attendance"; // Reset Label
+                els.footerToggles.style.display = 'flex';
+                els.recurrenceContainer.style.display = 'block';
+                updateModalOptions(els.eventDate.value);
+            }
+        }
+        els.eventDesignator.addEventListener('change', handleDesignatorChange);
+
+
         function updateModalOptions(dateStr) {
+            const val = els.eventDesignator.value;
+            if (val === 'Birthday' || val === 'Holiday') {
+                handleDesignatorChange(); 
+                return;
+            }
+
+            // Standard Update
+            els.locationGroup.style.display = 'block';
+            els.classGroup.style.display = 'block';
+            els.classAllLabel.style.display = 'inline-block';
+            els.classLabel.innerText = "Class Attendance";
+            els.footerToggles.style.display = 'flex';
+            els.recurrenceContainer.style.display = 'block';
+
             const isNoSchool = isWeekendOrNoSchool(dateStr);
             const selectedPeriod = els.eventPeriod.value;
             if (isNoSchool) { els.periodGroup.style.display = 'none'; els.timeframeGroup.style.display = 'block'; els.customTimeCheckContainer.style.display = 'none'; } 
@@ -1140,6 +1292,19 @@
             
             // Common Logic Helper
             const getEventPayload = (dStr) => {
+                const designator = els.eventDesignator.value;
+                const isBirthday = designator === 'Birthday';
+                const isHoliday = designator === 'Holiday';
+                
+                // STORAGE OPTIMIZATION: Minimal Payload
+                if (isBirthday) {
+                    return { date: dStr, name, notes: els.eventNotes.value, designator, classes: selectedClasses, recurrenceId: null }; 
+                }
+                if (isHoliday) {
+                    return { date: dStr, name, notes: els.eventNotes.value, designator, recurrenceId: null };
+                }
+
+                // Standard Payload
                 const isNoSchool = isWeekendOrNoSchool(dStr); 
                 const hasTimeframe = isNoSchool || els.eventPeriod.value === 'other' || els.customTimeCheck.checked;
                 return {
@@ -1153,7 +1318,7 @@
                     classes: selectedClasses, 
                     mandatory: els.mandatoryCheck.checked,
                     tentative: els.tentativeCheck.checked,
-                    designator: els.eventDesignator.value 
+                    designator 
                 };
             };
 
@@ -1162,12 +1327,75 @@
             try {
                 // CASE 1: Editing Existing Event
                 if (editingEventId) {
-                    await updateDoc(doc(db, "events", editingEventId), getEventPayload(date));
+                    // Note: recurrenceId is not modified on edit, so we don't pass it unless needed
+                    const payload = getEventPayload(date);
+                    // Since edit doesn't change series, we don't generate new Recurrence ID
+                    delete payload.recurrenceId; 
+                    await updateDoc(doc(db, "events", editingEventId), payload);
                 } 
-                // CASE 2: New Event (Check Recurrence)
+                // CASE 2: New Event
                 else {
-                    if (els.recurrenceCheck.checked) {
-                        // RECURRING LOGIC
+                    const designator = els.eventDesignator.value;
+
+                    // A. HOLIDAY LOGIC (50 Years)
+                    if (designator === 'Holiday') {
+                        const startDate = new Date(date + 'T12:00:00');
+                        const recurrenceId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                        const batch = writeBatch(db);
+                        
+                        for (let i = 0; i < 50; i++) {
+                             let ptr = new Date(startDate);
+                             ptr.setFullYear(startDate.getFullYear() + i);
+                             const dStr = getFormattedDate(ptr);
+                             const payload = getEventPayload(dStr);
+                             payload.recurrenceId = recurrenceId;
+                             
+                             const newRef = doc(collection(db, "events"));
+                             batch.set(newRef, payload);
+                        }
+                        await batch.commit();
+                    } 
+                    // B. BIRTHDAY LOGIC (Recur until Graduation)
+                    else if (designator === 'Birthday') {
+                        if (selectedClasses.length === 0) {
+                            alert("Please select a class year for the birthday.");
+                            els.saveEventBtn.innerText = "Save";
+                            return;
+                        }
+                        
+                        let maxClassYear = 0;
+                        selectedClasses.forEach(c => {
+                            const y = 2000 + parseInt(c);
+                            if (y > maxClassYear) maxClassYear = y;
+                        });
+
+                        // Graduation Cutoff: June 1st of that year
+                        const gradDate = new Date(maxClassYear, 5, 1); 
+                        const startDate = new Date(date + 'T12:00:00');
+                        
+                        const recurrenceId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                        const batch = writeBatch(db);
+                        
+                        let ptr = new Date(startDate);
+                        let count = 0;
+
+                        while (ptr < gradDate) {
+                            const dStr = getFormattedDate(ptr);
+                            const payload = getEventPayload(dStr);
+                            payload.recurrenceId = recurrenceId;
+                            
+                            const newRef = doc(collection(db, "events"));
+                            batch.set(newRef, payload);
+                            
+                            ptr.setFullYear(ptr.getFullYear() + 1);
+                            count++;
+                        }
+
+                        if (count > 0) await batch.commit();
+                        else alert("Birthday is after graduation date.");
+                    }
+                    // C. MANUAL RECURRENCE
+                    else if (els.recurrenceCheck.checked) {
                         const freq = els.recurrenceFreq.value;
                         const endDateStr = els.recurrenceEndDate.value;
                         
@@ -1177,7 +1405,7 @@
                             return;
                         }
 
-                        const startDate = new Date(date + 'T12:00:00'); // Normalize
+                        const startDate = new Date(date + 'T12:00:00'); 
                         const endDate = new Date(endDateStr + 'T12:00:00');
                         
                         if (endDate < startDate) {
@@ -1186,15 +1414,11 @@
                             return;
                         }
 
-                        // Generate Recurrence ID
                         const recurrenceId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
-
-                        // Batch Write
                         const batch = writeBatch(db);
                         let ptr = new Date(startDate);
                         let count = 0;
 
-                        // Get Selected Days for Weekly
                         const selectedDays = [];
                         if (freq === 'weekly') {
                             recurDayChecks.forEach(cb => { if(cb.checked) selectedDays.push(parseInt(cb.value)); });
@@ -1219,7 +1443,7 @@
                             if (shouldAdd) {
                                 const dStr = getFormattedDate(ptr);
                                 const payload = getEventPayload(dStr);
-                                payload.recurrenceId = recurrenceId; // Tag it
+                                payload.recurrenceId = recurrenceId; 
                                 const newRef = doc(collection(db, "events"));
                                 batch.set(newRef, payload);
                                 count++;
@@ -1234,7 +1458,7 @@
                         }
 
                     } else {
-                        // STANDARD SINGLE EVENT
+                        // D. STANDARD SINGLE EVENT
                         await addDoc(collection(db, "events"), getEventPayload(date));
                     }
                 }
