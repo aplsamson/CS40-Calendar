@@ -387,7 +387,23 @@
                 </div>
             </div>
             
-            <div class="form-group" id="classGroup"><label id="classLabel">Class Attendance</label><div class="checkbox-group"><label class="checkbox-all" id="classAllLabel"><input type="checkbox" id="allClassesCheck"> All</label><label><input type="checkbox" value="26" class="class-check"> 26</label><label><input type="checkbox" value="27" class="class-check"> 27</label><label><input type="checkbox" value="28" class="class-check"> 28</label><label><input type="checkbox" value="29" class="class-check"> 29</label></div></div>
+            <div class="form-group" id="classGroup">
+                <label id="classLabel">Class Attendance</label>
+                <div class="checkbox-group" id="classCheckboxGroup">
+                    <label class="checkbox-all" id="classAllLabel"><input type="checkbox" id="allClassesCheck"> All</label>
+                    <label><input type="checkbox" value="26" class="class-check"> 26</label>
+                    <label><input type="checkbox" value="27" class="class-check"> 27</label>
+                    <label><input type="checkbox" value="28" class="class-check"> 28</label>
+                    <label><input type="checkbox" value="29" class="class-check"> 29</label>
+                </div>
+                <select id="birthdayClassSelect" class="form-control" style="display:none;">
+                    <option value="" disabled selected>Select Class Year</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                </select>
+            </div>
             
             <div class="form-group"><label>Notes</label><textarea id="eventNotes" class="form-control" placeholder="Optional details..."></textarea></div>
             <div class="modal-footer">
@@ -475,7 +491,8 @@
          'filterBtn', 'filterModal', 'filterMandatoryCheck', 'clearFiltersBtn', 'closeFilterBtn', 'selectAllFiltersBtn',
          'viewLegendBtn', 'eventDesignator',
          'recurrenceCheck', 'recurrenceOptions', 'recurrenceFreq', 'recurrenceDaysGroup', 'recurrenceEndDate',
-         'locationGroup', 'classGroup', 'footerToggles', 'recurrenceContainer', 'classAllLabel', 'classLabel'
+         'locationGroup', 'classGroup', 'footerToggles', 'recurrenceContainer', 'classAllLabel', 'classLabel',
+         'classCheckboxGroup', 'birthdayClassSelect'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -1111,6 +1128,7 @@
             els.recurrenceEndDate.value = "";
             recurDayChecks.forEach(cb => cb.checked = false);
             els.recurrenceDaysGroup.style.display = 'none';
+            els.birthdayClassSelect.value = ""; // Reset Select
 
             if (eventToEdit) {
                 editingEventId = eventToEdit.id;
@@ -1126,7 +1144,16 @@
                 if (eventToEdit.hasOwnProperty('tentative')) els.tentativeCheck.checked = eventToEdit.tentative;
                 if (eventToEdit.hasOwnProperty('designator')) els.eventDesignator.value = eventToEdit.designator; 
 
-                if(eventToEdit.classes) { eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; }); if(eventToEdit.classes.length === 4) els.allClassesCheck.checked = true; }
+                if(eventToEdit.classes) { 
+                    // Standard Checkboxes
+                    eventToEdit.classes.forEach(cls => { const cb = document.querySelector(`.class-check[value="${cls}"]`); if(cb) cb.checked = true; }); 
+                    if(eventToEdit.classes.length === 4) els.allClassesCheck.checked = true; 
+                    
+                    // Single Select for Birthday
+                    if (eventToEdit.designator === 'Birthday' && eventToEdit.classes.length > 0) {
+                        els.birthdayClassSelect.value = eventToEdit.classes[0];
+                    }
+                }
                 const isNoSchool = isWeekendOrNoSchool(eventToEdit.date);
                 if (isNoSchool) { els.startTime.value = eventToEdit.startTime || ''; els.endTime.value = eventToEdit.endTime || ''; } 
                 else { els.eventPeriod.value = eventToEdit.period; if (eventToEdit.period !== 'other' && (eventToEdit.startTime || eventToEdit.endTime)) els.customTimeCheck.checked = true; els.startTime.value = eventToEdit.startTime || ''; els.endTime.value = eventToEdit.endTime || ''; }
@@ -1187,19 +1214,21 @@
                 els.footerToggles.style.display = 'none';
                 els.recurrenceContainer.style.display = 'none';
                 
-                // Show Class, Hide "All" Label
-                els.classGroup.style.display = 'block';
-                els.classAllLabel.style.display = 'none';
-                els.classLabel.innerText = "Class Year"; // Change Label
-                els.allClassesCheck.checked = false; 
-                classChecks.forEach(cb => cb.checked = false); 
+                // Show Single Select, Hide Checkboxes
+                els.classLabel.innerText = "Class Year";
+                els.classCheckboxGroup.style.display = 'none';
+                els.birthdayClassSelect.style.display = 'block';
             } 
             // 3. OTHER: Show everything standard
             else {
                 els.locationGroup.style.display = 'block';
                 els.classGroup.style.display = 'block';
-                els.classAllLabel.style.display = 'inline-block';
-                els.classLabel.innerText = "Class Attendance"; // Reset Label
+                
+                // Show Standard Checkboxes
+                els.classLabel.innerText = "Class Attendance";
+                els.classCheckboxGroup.style.display = 'flex';
+                els.birthdayClassSelect.style.display = 'none';
+                
                 els.footerToggles.style.display = 'flex';
                 els.recurrenceContainer.style.display = 'block';
                 updateModalOptions(els.eventDate.value);
@@ -1218,8 +1247,12 @@
             // Standard Update
             els.locationGroup.style.display = 'block';
             els.classGroup.style.display = 'block';
-            els.classAllLabel.style.display = 'inline-block';
+            
+            // Ensure Standard Checkboxes are Visible
             els.classLabel.innerText = "Class Attendance";
+            els.classCheckboxGroup.style.display = 'flex';
+            els.birthdayClassSelect.style.display = 'none';
+
             els.footerToggles.style.display = 'flex';
             els.recurrenceContainer.style.display = 'block';
 
@@ -1287,12 +1320,19 @@
             const name = els.eventName.value; 
             if (!date || !name) { alert("Please fill in Date and Event Name"); return; }
             
-            const selectedClasses = []; 
-            document.querySelectorAll('.class-check:checked').forEach(cb => selectedClasses.push(cb.value));
+            const designator = els.eventDesignator.value;
+            let selectedClasses = []; 
+
+            // SELECT CLASS LOGIC
+            if (designator === 'Birthday') {
+                const val = els.birthdayClassSelect.value;
+                if(val) selectedClasses.push(val);
+            } else {
+                document.querySelectorAll('.class-check:checked').forEach(cb => selectedClasses.push(cb.value));
+            }
             
             // Common Logic Helper
             const getEventPayload = (dStr) => {
-                const designator = els.eventDesignator.value;
                 const isBirthday = designator === 'Birthday';
                 const isHoliday = designator === 'Holiday';
                 
@@ -1327,16 +1367,12 @@
             try {
                 // CASE 1: Editing Existing Event
                 if (editingEventId) {
-                    // Note: recurrenceId is not modified on edit, so we don't pass it unless needed
                     const payload = getEventPayload(date);
-                    // Since edit doesn't change series, we don't generate new Recurrence ID
                     delete payload.recurrenceId; 
                     await updateDoc(doc(db, "events", editingEventId), payload);
                 } 
                 // CASE 2: New Event
                 else {
-                    const designator = els.eventDesignator.value;
-
                     // A. HOLIDAY LOGIC (50 Years)
                     if (designator === 'Holiday') {
                         const startDate = new Date(date + 'T12:00:00');
@@ -1349,6 +1385,7 @@
                              const dStr = getFormattedDate(ptr);
                              const payload = getEventPayload(dStr);
                              payload.recurrenceId = recurrenceId;
+                             payload.classes = []; // Ensure empty
                              
                              const newRef = doc(collection(db, "events"));
                              batch.set(newRef, payload);
@@ -1363,11 +1400,8 @@
                             return;
                         }
                         
-                        let maxClassYear = 0;
-                        selectedClasses.forEach(c => {
-                            const y = 2000 + parseInt(c);
-                            if (y > maxClassYear) maxClassYear = y;
-                        });
+                        // Determine Graduation Year from Single Selection
+                        const maxClassYear = 2000 + parseInt(selectedClasses[0]);
 
                         // Graduation Cutoff: June 1st of that year
                         const gradDate = new Date(maxClassYear, 5, 1); 
