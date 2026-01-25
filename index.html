@@ -51,9 +51,10 @@
         
         .add-event-btn-main { background-color: #003087; color: white; display: none; }
         .add-event-btn-main:hover { background-color: #001e54; }
-        .edit-mode-btn { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
-        .edit-mode-btn:hover { background-color: #e0e0e0; }
-        .edit-mode-btn.active { background-color: #d9534f; color: white; border: none; box-shadow: 0 2px 5px rgba(217, 83, 79, 0.4); }
+        
+        /* SETTINGS BUTTON */
+        .settings-btn { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
+        .settings-btn:hover { background-color: #e0e0e0; }
         
         .filter-btn { 
             background-color: white; color: #333; border: 1px solid #ccc; 
@@ -187,6 +188,22 @@
         .filter-section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
         .filter-section:last-child { border-bottom: none; }
         .filter-section h4 { margin: 0 0 10px 0; color: #003087; }
+        
+        /* SETTINGS MODAL SPECIFIC */
+        #settingsModal .modal-content { max-width: 400px; text-align: center; }
+        .settings-btn-toggle {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .settings-btn-toggle.inactive { background-color: #f0f0f0; color: #333; }
+        .settings-btn-toggle.active { background-color: #d9534f; color: white; border: none; }
 
         /* DAY DETAIL */
         .day-view-header { border-bottom: 2px solid #003087; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start; }
@@ -233,6 +250,14 @@
             </div>
         </div>
     </div>
+    
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal-btn" id="closeSettingsBtn">&times;</button>
+            <h3 class="modal-title">Settings</h3>
+            <button id="toggleEditModeBtn" class="settings-btn-toggle inactive">Enter Edit Mode</button>
+        </div>
+    </div>
 
     <div class="top-container">
         <div class="header-actions-left" id="headerActionsLeft">
@@ -249,7 +274,7 @@
             </button>
             
             <div class="action-buttons-stack">
-                <button id="editModeBtn" class="header-btn edit-mode-btn">Edit Mode</button>
+                <button id="settingsBtn" class="header-btn settings-btn">Settings</button>
                 <button id="addEventBtn" class="header-btn add-event-btn-main">+ Add Event</button>
             </div>
         </div>
@@ -465,6 +490,7 @@
         let silverDays = [];
         const PIN_CODE = "2640";
         let isEditMode = false;
+        let isSettingsUnlocked = false; // New Session State
         let currentDayViewKey = null; 
         
         // DEFAULT TO WEEK VIEW
@@ -481,7 +507,7 @@
         // --- DOM Elements ---
         const els = {};
         ['monthYear','calendarGrid','prevBtn','nextBtn','weekViewBtn','mainHeaderTitle','mainHeaderLogo',
-         'headerActionsLeft','headerActionsRight','calendarNavHeader','cleanModeLegend','addEventBtn','editModeBtn',
+         'headerActionsLeft','headerActionsRight','calendarNavHeader','cleanModeLegend','addEventBtn','settingsBtn',
          'eventModal','modalTitle','cancelBtn','saveEventBtn','eventDate','eventName','eventLocation',
          'eventPeriod','eventNotes','opt-m5','periodGroup','timeframeGroup','startTime','endTime',
          'customTimeCheck','customTimeCheckContainer','allClassesCheck','dayViewModal','closeDayView',
@@ -492,7 +518,8 @@
          'viewLegendBtn', 'eventDesignator',
          'recurrenceCheck', 'recurrenceOptions', 'recurrenceFreq', 'recurrenceDaysGroup', 'recurrenceEndDate',
          'locationGroup', 'classGroup', 'footerToggles', 'recurrenceContainer', 'classAllLabel', 'classLabel',
-         'classCheckboxGroup', 'birthdayClassSelect'
+         'classCheckboxGroup', 'birthdayClassSelect',
+         'settingsModal', 'closeSettingsBtn', 'toggleEditModeBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -923,30 +950,69 @@
         els.filterMandatoryCheck.addEventListener('change', updateFilters);
 
 
-        // --- UI HANDLERS ---
-        els.editModeBtn.addEventListener('click', () => {
-            if (!isEditMode) { els.pinInput.value = ""; els.pinModal.style.display = 'flex'; els.pinInput.focus(); } 
-            else { isEditMode = false; updateEditModeUI(); }
+        // --- SETTINGS / EDIT MODE LOGIC ---
+        
+        // 1. Settings Button Click
+        els.settingsBtn.addEventListener('click', () => {
+            if (isSettingsUnlocked) {
+                // If already unlocked, skip PIN and open settings
+                els.settingsModal.style.display = 'flex';
+                updateSettingsUI();
+            } else {
+                // If not unlocked, show PIN
+                els.pinInput.value = ""; 
+                els.pinModal.style.display = 'flex'; 
+                els.pinInput.focus();
+            }
         });
 
+        // 2. PIN Logic
         function checkPin() {
-            if (els.pinInput.value === PIN_CODE) { isEditMode = true; updateEditModeUI(); els.pinModal.style.display = 'none'; } 
-            else { alert("Incorrect PIN."); els.pinInput.value = ""; els.pinInput.focus(); }
+            if (els.pinInput.value === PIN_CODE) { 
+                isSettingsUnlocked = true; // Unlock Session
+                els.pinModal.style.display = 'none';
+                els.settingsModal.style.display = 'flex'; // Open Settings
+                updateSettingsUI();
+            } else { 
+                alert("Incorrect PIN."); 
+                els.pinInput.value = ""; 
+                els.pinInput.focus(); 
+            }
         }
         els.submitPinBtn.onclick = checkPin;
         els.cancelPinBtn.onclick = () => els.pinModal.style.display = 'none';
         els.pinInput.onkeypress = (e) => { if(e.key === 'Enter') checkPin(); };
 
+        // 3. Settings Modal Logic
+        els.closeSettingsBtn.onclick = () => els.settingsModal.style.display = 'none';
+        
+        els.toggleEditModeBtn.addEventListener('click', () => {
+            isEditMode = !isEditMode;
+            updateEditModeUI();
+            updateSettingsUI();
+        });
+
+        function updateSettingsUI() {
+            if (isEditMode) {
+                els.toggleEditModeBtn.innerText = "Exit Edit Mode";
+                els.toggleEditModeBtn.classList.remove('inactive');
+                els.toggleEditModeBtn.classList.add('active');
+            } else {
+                els.toggleEditModeBtn.innerText = "Enter Edit Mode";
+                els.toggleEditModeBtn.classList.remove('active');
+                els.toggleEditModeBtn.classList.add('inactive');
+            }
+        }
+
         function updateEditModeUI() {
             if (isEditMode) { 
-                els.editModeBtn.innerText = "Exit Edit Mode"; 
                 els.headerActionsRight.classList.add('edit-active');
                 els.addEventBtn.style.display = 'block'; 
             } else { 
-                els.editModeBtn.innerText = "Edit Mode"; 
                 els.headerActionsRight.classList.remove('edit-active');
                 els.addEventBtn.style.display = 'none'; 
             }
+            // Update Day View if it's currently open
             if (els.dayViewModal.style.display === 'flex' && currentDayViewKey) {
                 const type = getDayType(currentDayViewKey); openDayView(currentDayViewKey, type);
             }
@@ -1270,7 +1336,13 @@
         classChecks.forEach(cb => { cb.addEventListener('change', () => { els.allClassesCheck.checked = Array.from(classChecks).every(c => c.checked); }); });
         els.cancelBtn.onclick = () => els.eventModal.style.display = 'none';
         els.closeDayView.onclick = () => els.dayViewModal.style.display = 'none';
-        window.onclick = (e) => { if (e.target == els.eventModal) els.eventModal.style.display = "none"; if (e.target == els.dayViewModal) els.dayViewModal.style.display = "none"; if (e.target == els.pinModal) els.pinModal.style.display = "none"; if (e.target == els.filterModal) els.filterModal.style.display = "none"; };
+        window.onclick = (e) => { 
+            if (e.target == els.eventModal) els.eventModal.style.display = "none"; 
+            if (e.target == els.dayViewModal) els.dayViewModal.style.display = "none"; 
+            if (e.target == els.pinModal) els.pinModal.style.display = "none"; 
+            if (e.target == els.filterModal) els.filterModal.style.display = "none"; 
+            if (e.target == els.settingsModal) els.settingsModal.style.display = "none"; 
+        };
         
         // CLEAN MODE TOGGLE LOGIC
         els.mainHeaderLogo.addEventListener('dblclick', () => { 
@@ -1338,10 +1410,25 @@
                 
                 // STORAGE OPTIMIZATION: Minimal Payload
                 if (isBirthday) {
-                    return { date: dStr, name, notes: els.eventNotes.value, designator, classes: selectedClasses, recurrenceId: null }; 
+                    return { 
+                        date: dStr, 
+                        name, 
+                        notes: els.eventNotes.value, 
+                        designator, 
+                        classes: selectedClasses, 
+                        recurrenceId: null,
+                        period: 'other' // FORCE 'OTHER' so it renders on grid
+                    }; 
                 }
                 if (isHoliday) {
-                    return { date: dStr, name, notes: els.eventNotes.value, designator, recurrenceId: null };
+                    return { 
+                        date: dStr, 
+                        name, 
+                        notes: els.eventNotes.value, 
+                        designator, 
+                        recurrenceId: null,
+                        period: 'other' // FORCE 'OTHER' so it renders on grid
+                    };
                 }
 
                 // Standard Payload
@@ -1367,9 +1454,34 @@
             try {
                 // CASE 1: Editing Existing Event
                 if (editingEventId) {
-                    const payload = getEventPayload(date);
-                    delete payload.recurrenceId; 
-                    await updateDoc(doc(db, "events", editingEventId), payload);
+                    const eventToEdit = events.find(e => e.id === editingEventId);
+                    
+                    if (eventToEdit && eventToEdit.recurrenceId) {
+                        // BATCH UPDATE SERIES
+                        // We query all events with this recurrenceId and update them
+                        // IMPORTANT: We preserve their original DATE
+                        
+                        const q = query(collection(db, "events"), where("recurrenceId", "==", eventToEdit.recurrenceId));
+                        const querySnapshot = await getDocs(q);
+                        const batch = writeBatch(db);
+                        
+                        const basePayload = getEventPayload(date); // Get current form data
+                        // Remove date-specific fields we don't want to overwrite on the whole series
+                        delete basePayload.date; 
+                        delete basePayload.recurrenceId; // Don't change the ID
+                        
+                        querySnapshot.forEach((docSnap) => {
+                            batch.update(docSnap.ref, basePayload);
+                        });
+                        
+                        await batch.commit();
+                        
+                    } else {
+                        // SINGLE EVENT UPDATE
+                        const payload = getEventPayload(date);
+                        delete payload.recurrenceId; 
+                        await updateDoc(doc(db, "events", editingEventId), payload);
+                    }
                 } 
                 // CASE 2: New Event
                 else {
