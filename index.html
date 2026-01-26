@@ -596,7 +596,7 @@
             // Show button if on mobile and not already installed
             if (window.innerWidth <= 768 && !isStandalone) {
                 els.installContainer.style.display = 'flex';
-                els.installAppBtn.innerText = "📲 Install App";
+                els.installAppBtn.innerText = "Install App";
             }
         });
 
@@ -604,7 +604,7 @@
         if (isIos && !isStandalone && window.innerWidth <= 768) {
             // Show button immediately for iOS since the event above won't fire
             els.installContainer.style.display = 'flex';
-            els.installAppBtn.innerText = "📲 Install on iPhone";
+            els.installAppBtn.innerText = "Install on iPhone";
         }
 
         // 4. Handle Button Click
