@@ -181,6 +181,7 @@
         .btn-cancel { background: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-save { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-select-all { background: #003087; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .btn-danger { background: #d9534f; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 
         /* FILTER MODAL SPECIFIC */
         #filterModal .modal-content { width: 450px; }
@@ -287,6 +288,58 @@
             <button id="toggleEditModeBtn" class="settings-btn-toggle inactive">Enter Edit Mode</button>
             <button id="openEventListBtn" class="settings-btn-toggle inactive" style="background-color: #003087; color: white; border: none;">See Events List</button>
             <button id="setSemesterBtn" class="settings-btn-toggle inactive" style="background-color: #28a745; color: white; border: none;">Set Semester Start / End</button>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <button id="changePinBtn" class="settings-btn-toggle inactive" style="background-color: #6c757d; color: white; border: none;">Change PIN</button>
+            <button id="exportDataBtn" class="settings-btn-toggle inactive" style="background-color: #17a2b8; color: white; border: none;">Export All Data</button>
+            <button id="cleanupDataBtn" class="settings-btn-toggle inactive" style="background-color: #dc3545; color: white; border: none;">Data Cleanup</button>
+        </div>
+    </div>
+
+    <div id="changePinModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 class="modal-title">Change Security PIN</h3>
+            <div class="form-group">
+                <label>Current PIN</label>
+                <input type="password" id="currentPinInput" class="form-control" placeholder="Enter current PIN">
+            </div>
+            <div class="form-group">
+                <label>New PIN</label>
+                <input type="password" id="newPinInput" class="form-control" placeholder="Enter new PIN">
+            </div>
+            <div class="form-group">
+                <label>Verify New PIN</label>
+                <input type="password" id="verifyPinInput" class="form-control" placeholder="Re-enter new PIN">
+            </div>
+            <div class="modal-actions">
+                <button id="cancelChangePinBtn" class="btn-cancel">Cancel</button>
+                <button id="saveNewPinBtn" class="btn-save">Update PIN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cleanupModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <h3 class="modal-title" style="color: #d9534f;">Data Cleanup</h3>
+            <p style="margin-bottom: 15px; color: #555;">Select a timeframe to delete old events. This action cannot be undone.</p>
+            
+            <div class="form-group">
+                <label>Delete events older than:</label>
+                <select id="cleanupTimeframe" class="form-control">
+                    <option value="3">3 Months</option>
+                    <option value="6">6 Months</option>
+                    <option value="12">1 Year</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <label style="color: #d9534f;">Security Verification</label>
+                <input type="password" id="cleanupPinInput" class="form-control" placeholder="Enter PIN to confirm deletion">
+            </div>
+
+            <div class="modal-actions">
+                <button id="cancelCleanupBtn" class="btn-cancel">Cancel</button>
+                <button id="executeCleanupBtn" class="btn-danger">Delete Old Data</button>
+            </div>
         </div>
     </div>
 
@@ -447,12 +500,14 @@
         // Global Variables
         let currentDate = new Date();
         let events = [];
-        let noSchoolDays = []; // Now stores Objects: {id: dateStr, type: 'standard'|'snow'}
+        let noSchoolDays = []; // Objects: {id: dateStr, type: 'standard'|'snow'}
         let silverDays = [];
         let semesterSettings = { start: null, end: null };
         let generatedSchedule = {}; // Dynamic schedule map "YYYY-MM-DD" -> "M1"
+        
+        // SECURITY UPDATE: PIN is now fetched dynamically
+        let currentPin = "2640"; // Default fallback
 
-        const PIN_CODE = "2640";
         let isEditMode = false;
         let isSettingsUnlocked = false; 
         let currentDayViewKey = null; 
@@ -482,7 +537,10 @@
          'classCheckboxGroup', 'birthdayClassSelect',
          'settingsModal', 'closeSettingsBtn', 'toggleEditModeBtn', 'openEventListBtn', 'setSemesterBtn',
          'eventsListModal', 'closeEventsListBtn', 'generateListBtn', 'eventsListResults',
-         'semesterModal', 'semesterStart', 'semesterEnd', 'cancelSemesterBtn', 'saveSemesterBtn'
+         'semesterModal', 'semesterStart', 'semesterEnd', 'cancelSemesterBtn', 'saveSemesterBtn',
+         'changePinBtn', 'exportDataBtn', 'cleanupDataBtn',
+         'changePinModal', 'currentPinInput', 'newPinInput', 'verifyPinInput', 'cancelChangePinBtn', 'saveNewPinBtn',
+         'cleanupModal', 'cleanupTimeframe', 'cleanupPinInput', 'cancelCleanupBtn', 'executeCleanupBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -494,12 +552,24 @@
         // --- FIREBASE DATA ---
         async function loadData() {
             try {
+                // Fetch PIN
+                try {
+                    const pinDoc = await getDoc(doc(db, "settings", "security"));
+                    if (pinDoc.exists()) {
+                        currentPin = pinDoc.data().pin;
+                    } else {
+                        // Create default if not exists
+                        await setDoc(doc(db, "settings", "security"), { pin: "2640" });
+                        currentPin = "2640";
+                    }
+                } catch(e) { console.log("Pin fetch check: ", e); }
+
                 // Events
                 const eventsSnapshot = await getDocs(collection(db, "events"));
                 events = [];
                 eventsSnapshot.forEach((doc) => events.push({ ...doc.data(), id: doc.id }));
 
-                // No School Days (UPDATED STRUCTURE)
+                // No School Days
                 const noSchoolSnapshot = await getDocs(collection(db, "noSchoolDays"));
                 noSchoolDays = [];
                 noSchoolSnapshot.forEach((doc) => {
@@ -537,14 +607,12 @@
             const end = new Date(semesterSettings.end + 'T12:00:00');
             let seq = 1; 
 
-            // Prevent infinite loop if dates messed up
             let loopCount = 0;
             while (itr <= end && loopCount < 366) {
                 loopCount++;
                 const dStr = getFormattedDate(itr);
                 const dayOfWeek = itr.getDay();
 
-                // Skip Weekends
                 if (dayOfWeek === 0 || dayOfWeek === 6) {
                     itr.setDate(itr.getDate() + 1);
                     continue;
@@ -554,17 +622,11 @@
 
                 if (nsDay) {
                     if (nsDay.type === 'snow') {
-                        // SNOW DAY: Burn sequence (Skip M/T), No Label
                         seq++; 
-                    } else {
-                        // STANDARD NO SCHOOL: Pause sequence (Day skipped, sequence holds)
                     }
                 } else {
-                    // SCHOOL DAY: Assign M/T
                     const isM = (seq % 2 !== 0);
                     const num = Math.ceil(seq / 2);
-                    // Stop at T40? Prompt implies "end on T40". 
-                    // We will just let it run, but typically it aligns.
                     generatedSchedule[dStr] = (isM ? 'M' : 'T') + num;
                     seq++;
                 }
@@ -574,7 +636,6 @@
         }
 
         function getDayType(dateStr) {
-            // New Priority: Generated Schedule -> Static File Fallback
             if (generatedSchedule[dateStr]) return generatedSchedule[dateStr];
             if (typeof academicSchedule !== 'undefined' && academicSchedule[dateStr]) return academicSchedule[dateStr];
             return "";
@@ -915,7 +976,13 @@
             else { els.pinInput.value = ""; els.pinModal.style.display = 'flex'; els.pinInput.focus(); }
         });
         function checkPin() {
-            if (els.pinInput.value === PIN_CODE) { isSettingsUnlocked = true; els.pinModal.style.display = 'none'; els.settingsModal.style.display = 'flex'; updateSettingsUI(); } 
+            // SECURITY CHECK AGAINST FIREBASE VALUE
+            if (els.pinInput.value === currentPin) { 
+                isSettingsUnlocked = true; 
+                els.pinModal.style.display = 'none'; 
+                els.settingsModal.style.display = 'flex'; 
+                updateSettingsUI(); 
+            } 
             else { alert("Incorrect PIN."); els.pinInput.value = ""; els.pinInput.focus(); }
         }
         els.submitPinBtn.onclick = checkPin;
@@ -946,6 +1013,109 @@
                 els.semesterModal.style.display = 'none';
             } catch(e) { alert("Error saving semester: " + e.message); }
         };
+
+        // --- NEW: CHANGE PIN LOGIC ---
+        els.changePinBtn.onclick = () => {
+            els.settingsModal.style.display = 'none';
+            els.currentPinInput.value = "";
+            els.newPinInput.value = "";
+            els.verifyPinInput.value = "";
+            els.changePinModal.style.display = 'flex';
+        };
+        els.cancelChangePinBtn.onclick = () => els.changePinModal.style.display = 'none';
+
+        els.saveNewPinBtn.onclick = async () => {
+            const oldPin = els.currentPinInput.value;
+            const newPin = els.newPinInput.value;
+            const verifyPin = els.verifyPinInput.value;
+
+            if (oldPin !== currentPin) { alert("Current PIN is incorrect."); return; }
+            if (newPin.length < 4) { alert("New PIN must be at least 4 characters."); return; }
+            if (newPin !== verifyPin) { alert("New PINs do not match."); return; }
+
+            try {
+                await setDoc(doc(db, "settings", "security"), { pin: newPin });
+                currentPin = newPin;
+                alert("PIN updated successfully.");
+                els.changePinModal.style.display = 'none';
+            } catch (e) { alert("Error updating PIN: " + e.message); }
+        };
+
+        // --- NEW: EXPORT DATA LOGIC ---
+        els.exportDataBtn.onclick = () => {
+            const exportObj = {
+                exportedAt: new Date().toISOString(),
+                events: events,
+                noSchoolDays: noSchoolDays,
+                silverDays: silverDays,
+                semesterSettings: semesterSettings
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "cs40_calendar_backup_" + getFormattedDate(new Date()) + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        };
+
+        // --- NEW: DATA CLEANUP LOGIC ---
+        els.cleanupDataBtn.onclick = () => {
+            els.settingsModal.style.display = 'none';
+            els.cleanupPinInput.value = "";
+            els.cleanupModal.style.display = 'flex';
+        };
+        els.cancelCleanupBtn.onclick = () => els.cleanupModal.style.display = 'none';
+
+        els.executeCleanupBtn.onclick = async () => {
+            // Re-verify PIN for destructive action
+            if (els.cleanupPinInput.value !== currentPin) {
+                alert("Incorrect PIN. Cleanup aborted.");
+                return;
+            }
+
+            if (!confirm("Are you absolutely sure? This will permanently delete events older than the selected timeframe.")) {
+                return;
+            }
+
+            const months = parseInt(els.cleanupTimeframe.value);
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - months);
+            const cutoffStr = getFormattedDate(cutoffDate);
+
+            // Filter events strictly older than cutoffStr (string comparison works for YYYY-MM-DD)
+            const eventsToDelete = events.filter(e => e.date < cutoffStr);
+
+            if (eventsToDelete.length === 0) {
+                alert("No events found older than the selected date.");
+                return;
+            }
+
+            els.executeCleanupBtn.innerText = "Deleting...";
+            
+            try {
+                // Batch delete (max 500 per batch)
+                const batchSize = 450;
+                for (let i = 0; i < eventsToDelete.length; i += batchSize) {
+                    const batch = writeBatch(db);
+                    const chunk = eventsToDelete.slice(i, i + batchSize);
+                    chunk.forEach(evt => {
+                        batch.delete(doc(db, "events", evt.id));
+                    });
+                    await batch.commit();
+                }
+
+                alert(`Successfully deleted ${eventsToDelete.length} old events.`);
+                await loadData();
+                els.cleanupModal.style.display = 'none';
+            } catch (e) {
+                alert("Error deleting data: " + e.message);
+            } finally {
+                els.executeCleanupBtn.innerText = "Delete Old Data";
+            }
+        };
+
 
         // EVENT LIST
         els.openEventListBtn.onclick = () => { els.settingsModal.style.display = 'none'; els.eventsListModal.style.display = 'flex'; };
@@ -1242,6 +1412,8 @@
             if (e.target == els.pinModal) els.pinModal.style.display = "none"; 
             if (e.target == els.filterModal) els.filterModal.style.display = "none"; 
             if (e.target == els.settingsModal) els.settingsModal.style.display = "none"; 
+            if (e.target == els.changePinModal) els.changePinModal.style.display = "none";
+            if (e.target == els.cleanupModal) els.cleanupModal.style.display = "none";
         };
         
         els.mainHeaderLogo.addEventListener('dblclick', () => { 
