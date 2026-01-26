@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CS40 Calendar</title>
     <link rel="icon" href="https://www.aviatorgear.com/images/product/large/39950.jpg" type="image/jpeg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CS40 Calendar">
     
     <style>
         html { font-size: 14px; }
@@ -116,6 +120,18 @@
         .event-chip { display: block; color: white; padding: 2px 4px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; pointer-events: none; z-index: 5; position: relative; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
         .day-cell.week-view .event-chip { font-size: 0.9rem; padding: 6px 8px; white-space: normal; line-height: 1.3; margin-bottom: 4px; display: flex; flex-direction: column; }
         .more-events-indicator { font-size: 1.2rem; line-height: 0.5; color: #333; text-align: center; font-weight: bold; padding-bottom: 2px; }
+
+        /* INSTALL APP BUTTON */
+        .install-container {
+            width: 100%; max-width: 400px; display: none; justify-content: center; margin-bottom: 20px;
+        }
+        .install-btn-main {
+            background-color: #28a745; color: white; border: none; padding: 12px 25px; 
+            border-radius: 25px; font-weight: bold; font-size: 1rem; cursor: pointer; 
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .install-btn-main:active { transform: scale(0.98); background-color: #218838; }
 
         /* MOBILE DAY VIEW OVERRIDES */
         @media (max-width: 768px) {
@@ -425,6 +441,12 @@
         </div>
     </div>
 
+    <div id="installContainer" class="install-container">
+        <button id="installAppBtn" class="install-btn-main">
+            📲 Install App
+        </button>
+    </div>
+
     <div class="calendar-container">
         <header class="calendar-header" id="calendarNavHeader">
             <button id="prevBtn" class="nav-btn">&lt;</button> <h2 id="monthYear">Month Year</h2> <button id="nextBtn" class="nav-btn">&gt;</button>
@@ -500,19 +522,19 @@
         // Global Variables
         let currentDate = new Date();
         let events = [];
-        let noSchoolDays = []; // Objects: {id: dateStr, type: 'standard'|'snow'}
+        let noSchoolDays = []; 
         let silverDays = [];
         let semesterSettings = { start: null, end: null };
-        let generatedSchedule = {}; // Dynamic schedule map "YYYY-MM-DD" -> "M1"
+        let generatedSchedule = {}; 
         
-        // SECURITY UPDATE: PIN is now fetched dynamically
-        let currentPin = "2640"; // Default fallback
+        let currentPin = "2640"; 
 
         let isEditMode = false;
         let isSettingsUnlocked = false; 
         let currentDayViewKey = null; 
         let currentView = 'week'; 
         let editingEventId = null;
+        let deferredPrompt; // For PWA install
         
         const filterState = { 
             classes: [], 
@@ -540,7 +562,8 @@
          'semesterModal', 'semesterStart', 'semesterEnd', 'cancelSemesterBtn', 'saveSemesterBtn',
          'changePinBtn', 'exportDataBtn', 'cleanupDataBtn',
          'changePinModal', 'currentPinInput', 'newPinInput', 'verifyPinInput', 'cancelChangePinBtn', 'saveNewPinBtn',
-         'cleanupModal', 'cleanupTimeframe', 'cleanupPinInput', 'cancelCleanupBtn', 'executeCleanupBtn'
+         'cleanupModal', 'cleanupTimeframe', 'cleanupPinInput', 'cancelCleanupBtn', 'executeCleanupBtn',
+         'installContainer', 'installAppBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -549,50 +572,76 @@
         const listFilterChecks = document.querySelectorAll('.list-filter-check');
         const recurDayChecks = document.querySelectorAll('.recur-day-check');
 
+        // --- PWA INSTALLATION LOGIC ---
+        // 1. Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('Service Worker Registered', reg))
+                    .catch((err) => console.log('Service Worker Not Registered', err));
+            });
+        }
+
+        // 2. Capture Install Prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Only show button if on mobile width
+            if (window.innerWidth <= 768) {
+                els.installContainer.style.display = 'flex';
+            }
+        });
+
+        // 3. Handle Button Click
+        els.installAppBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('User response to install prompt:', outcome);
+                deferredPrompt = null;
+                els.installContainer.style.display = 'none';
+            }
+        });
+
+        // 4. Handle resize (if user rotates phone or resizes browser)
+        window.addEventListener('resize', () => {
+            if (deferredPrompt && window.innerWidth <= 768) {
+                els.installContainer.style.display = 'flex';
+            } else {
+                els.installContainer.style.display = 'none';
+            }
+            updateViewBasedOnScreen();
+        });
+
+
         // --- FIREBASE DATA ---
         async function loadData() {
             try {
-                // Fetch PIN
                 try {
                     const pinDoc = await getDoc(doc(db, "settings", "security"));
-                    if (pinDoc.exists()) {
-                        currentPin = pinDoc.data().pin;
-                    } else {
-                        // Create default if not exists
-                        await setDoc(doc(db, "settings", "security"), { pin: "2640" });
-                        currentPin = "2640";
-                    }
+                    if (pinDoc.exists()) { currentPin = pinDoc.data().pin; } 
+                    else { await setDoc(doc(db, "settings", "security"), { pin: "2640" }); currentPin = "2640"; }
                 } catch(e) { console.log("Pin fetch check: ", e); }
 
-                // Events
                 const eventsSnapshot = await getDocs(collection(db, "events"));
                 events = [];
                 eventsSnapshot.forEach((doc) => events.push({ ...doc.data(), id: doc.id }));
 
-                // No School Days
                 const noSchoolSnapshot = await getDocs(collection(db, "noSchoolDays"));
                 noSchoolDays = [];
-                noSchoolSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    noSchoolDays.push({ id: doc.id, type: data.type || 'standard' });
-                });
+                noSchoolSnapshot.forEach((doc) => { const data = doc.data(); noSchoolDays.push({ id: doc.id, type: data.type || 'standard' }); });
 
-                // Silver Days
                 const silverSnapshot = await getDocs(collection(db, "silverDays"));
                 silverDays = [];
                 silverSnapshot.forEach((doc) => silverDays.push(doc.id));
                 
-                // Semester Settings
                 try {
                     const semDoc = await getDoc(doc(db, "settings", "semester"));
-                    if(semDoc.exists()) {
-                        semesterSettings = semDoc.data();
-                    }
+                    if(semDoc.exists()) { semesterSettings = semDoc.data(); }
                 } catch(e) { console.log("No semester settings yet"); }
 
-                // Cleanup & Generate Schedule
                 await cleanupExpiredBirthdays();
-                generateSchedule(); // Calculate M/T days
+                generateSchedule(); 
 
                 updateViewBasedOnScreen();
             } catch (e) { console.error(e); alert("Data load error: " + e.message); }
@@ -613,24 +662,17 @@
                 const dStr = getFormattedDate(itr);
                 const dayOfWeek = itr.getDay();
 
-                if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    itr.setDate(itr.getDate() + 1);
-                    continue;
-                }
+                if (dayOfWeek === 0 || dayOfWeek === 6) { itr.setDate(itr.getDate() + 1); continue; }
 
                 const nsDay = noSchoolDays.find(n => n.id === dStr);
 
-                if (nsDay) {
-                    if (nsDay.type === 'snow') {
-                        seq++; 
-                    }
-                } else {
+                if (nsDay) { if (nsDay.type === 'snow') { seq++; } } 
+                else {
                     const isM = (seq % 2 !== 0);
                     const num = Math.ceil(seq / 2);
                     generatedSchedule[dStr] = (isM ? 'M' : 'T') + num;
                     seq++;
                 }
-                
                 itr.setDate(itr.getDate() + 1);
             }
         }
@@ -662,10 +704,7 @@
                 if (!sample.classes || sample.classes.length === 0) continue;
                 
                 let maxClassYear = 0;
-                sample.classes.forEach(c => {
-                    const y = 2000 + parseInt(c);
-                    if (y > maxClassYear) maxClassYear = y;
-                });
+                sample.classes.forEach(c => { const y = 2000 + parseInt(c); if (y > maxClassYear) maxClassYear = y; });
 
                 const gradDate = new Date(maxClassYear, 5, 1); 
                 if (now > gradDate) {
@@ -684,20 +723,15 @@
 
         function updateViewBasedOnScreen() {
             if (window.innerWidth <= 768) {
-                if (currentView !== 'day') {
-                    currentView = 'day';
-                }
+                if (currentView !== 'day') { currentView = 'day'; }
                 els.weekViewBtn.style.display = 'none';
             } else {
-                if (currentView === 'day') {
-                    currentView = 'week';
-                }
+                if (currentView === 'day') { currentView = 'week'; }
                 els.weekViewBtn.style.display = 'block';
             }
             renderCalendar();
         }
-        window.addEventListener('resize', updateViewBasedOnScreen);
-
+        
         // --- CALENDAR LOGIC ---
         function getFormattedDate(dateObj) {
             const y = dateObj.getFullYear();
@@ -733,7 +767,6 @@
             return `linear-gradient(to right, ${gradientParts.join(', ')})`;
         }
 
-        // --- FILTERING HELPER ---
         function getFilteredEvents() {
             return events.filter(evt => {
                 if (filterState.mandatoryOnly && !evt.mandatory) return false;
@@ -866,11 +899,8 @@
             filteredEvents.forEach(evt => {
                 let targetId;
                 const isNoSchool = isWeekendOrNoSchool(evt.date);
-                if (isNoSchool) {
-                    targetId = `cell-${evt.date}-weekend`;
-                } else {
-                    targetId = `cell-${evt.date}-${evt.period}`;
-                }
+                if (isNoSchool) { targetId = `cell-${evt.date}-weekend`; } 
+                else { targetId = `cell-${evt.date}-${evt.period}`; }
                 if (!eventsByTarget[targetId]) eventsByTarget[targetId] = [];
                 eventsByTarget[targetId].push(evt);
             });
@@ -976,7 +1006,6 @@
             else { els.pinInput.value = ""; els.pinModal.style.display = 'flex'; els.pinInput.focus(); }
         });
         function checkPin() {
-            // SECURITY CHECK AGAINST FIREBASE VALUE
             if (els.pinInput.value === currentPin) { 
                 isSettingsUnlocked = true; 
                 els.pinModal.style.display = 'none'; 
@@ -1008,13 +1037,13 @@
             try {
                 await setDoc(doc(db, "settings", "semester"), { start, end });
                 semesterSettings = { start, end };
-                generateSchedule(); // Recalc M/T
+                generateSchedule(); 
                 await loadData();
                 els.semesterModal.style.display = 'none';
             } catch(e) { alert("Error saving semester: " + e.message); }
         };
 
-        // --- NEW: CHANGE PIN LOGIC ---
+        // --- CHANGE PIN LOGIC ---
         els.changePinBtn.onclick = () => {
             els.settingsModal.style.display = 'none';
             els.currentPinInput.value = "";
@@ -1041,7 +1070,7 @@
             } catch (e) { alert("Error updating PIN: " + e.message); }
         };
 
-        // --- NEW: EXPORT DATA LOGIC ---
+        // --- EXPORT DATA LOGIC ---
         els.exportDataBtn.onclick = () => {
             const exportObj = {
                 exportedAt: new Date().toISOString(),
@@ -1055,12 +1084,12 @@
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
             downloadAnchorNode.setAttribute("download", "cs40_calendar_backup_" + getFormattedDate(new Date()) + ".json");
-            document.body.appendChild(downloadAnchorNode); // required for firefox
+            document.body.appendChild(downloadAnchorNode); 
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
         };
 
-        // --- NEW: DATA CLEANUP LOGIC ---
+        // --- DATA CLEANUP LOGIC ---
         els.cleanupDataBtn.onclick = () => {
             els.settingsModal.style.display = 'none';
             els.cleanupPinInput.value = "";
@@ -1069,53 +1098,32 @@
         els.cancelCleanupBtn.onclick = () => els.cleanupModal.style.display = 'none';
 
         els.executeCleanupBtn.onclick = async () => {
-            // Re-verify PIN for destructive action
-            if (els.cleanupPinInput.value !== currentPin) {
-                alert("Incorrect PIN. Cleanup aborted.");
-                return;
-            }
-
-            if (!confirm("Are you absolutely sure? This will permanently delete events older than the selected timeframe.")) {
-                return;
-            }
+            if (els.cleanupPinInput.value !== currentPin) { alert("Incorrect PIN. Cleanup aborted."); return; }
+            if (!confirm("Are you absolutely sure? This will permanently delete events older than the selected timeframe.")) { return; }
 
             const months = parseInt(els.cleanupTimeframe.value);
             const cutoffDate = new Date();
             cutoffDate.setMonth(cutoffDate.getMonth() - months);
             const cutoffStr = getFormattedDate(cutoffDate);
 
-            // Filter events strictly older than cutoffStr (string comparison works for YYYY-MM-DD)
             const eventsToDelete = events.filter(e => e.date < cutoffStr);
-
-            if (eventsToDelete.length === 0) {
-                alert("No events found older than the selected date.");
-                return;
-            }
+            if (eventsToDelete.length === 0) { alert("No events found older than the selected date."); return; }
 
             els.executeCleanupBtn.innerText = "Deleting...";
-            
             try {
-                // Batch delete (max 500 per batch)
                 const batchSize = 450;
                 for (let i = 0; i < eventsToDelete.length; i += batchSize) {
                     const batch = writeBatch(db);
                     const chunk = eventsToDelete.slice(i, i + batchSize);
-                    chunk.forEach(evt => {
-                        batch.delete(doc(db, "events", evt.id));
-                    });
+                    chunk.forEach(evt => { batch.delete(doc(db, "events", evt.id)); });
                     await batch.commit();
                 }
-
                 alert(`Successfully deleted ${eventsToDelete.length} old events.`);
                 await loadData();
                 els.cleanupModal.style.display = 'none';
-            } catch (e) {
-                alert("Error deleting data: " + e.message);
-            } finally {
-                els.executeCleanupBtn.innerText = "Delete Old Data";
-            }
+            } catch (e) { alert("Error deleting data: " + e.message); } 
+            finally { els.executeCleanupBtn.innerText = "Delete Old Data"; }
         };
-
 
         // EVENT LIST
         els.openEventListBtn.onclick = () => { els.settingsModal.style.display = 'none'; els.eventsListModal.style.display = 'flex'; };
@@ -1170,20 +1178,16 @@
             if (isEditMode) {
                 els.dayViewEditControls.style.display = 'flex';
                 const d = new Date(dateKey + 'T12:00:00');
-                if (d.getDay() === 6) { // Saturday
+                if (d.getDay() === 6) { 
                     els.standardControls.style.display = 'none'; els.saturdayControls.style.display = 'flex'; els.silverCheck.checked = silverDays.includes(dateKey);
                 } else {
                     els.standardControls.style.display = 'flex'; els.saturdayControls.style.display = 'none';
-                    
-                    // -- UPDATED NO SCHOOL / SNOW DAY LOGIC --
                     const nsEntry = noSchoolDays.find(n => n.id === dateKey);
                     const isNS = !!nsEntry;
                     const isSnow = nsEntry && nsEntry.type === 'snow';
 
                     els.noSchoolCheck.checked = isNS;
                     els.snowDayCheck.checked = isSnow;
-                    
-                    // Visibility of Snow Day Checkbox
                     els.snowDayLabel.style.display = isNS ? 'flex' : 'none';
 
                     const existingSSOC = events.find(e => e.date === dateKey && e.name === "Special Schedule of Calls");
@@ -1191,35 +1195,21 @@
                 }
                 els.dayViewAddBtn.onclick = () => { els.dayViewModal.style.display = 'none'; openAddModal(dateKey); };
                 
-                // NO SCHOOL CLICK HANDLER
                 els.noSchoolCheck.onclick = async () => {
                     const isChecked = els.noSchoolCheck.checked;
-                    // Toggle Snow Day visibility
                     els.snowDayLabel.style.display = isChecked ? 'flex' : 'none';
-                    if (!isChecked) els.snowDayCheck.checked = false; // Reset snow if disabling no school
-
+                    if (!isChecked) els.snowDayCheck.checked = false; 
                     try { 
-                        if (isChecked) { 
-                            // Default to standard, user can upgrade to snow later
-                            await setDoc(doc(db, "noSchoolDays", dateKey), { type: 'standard' }); 
-                        } else { 
-                            await deleteDoc(doc(db, "noSchoolDays", dateKey)); 
-                        } 
-                        // Reload to recalc schedule
+                        if (isChecked) { await setDoc(doc(db, "noSchoolDays", dateKey), { type: 'standard' }); } 
+                        else { await deleteDoc(doc(db, "noSchoolDays", dateKey)); } 
                         await loadData();
                     } catch(e) { alert("Error: " + e.message); }
                 };
 
-                // SNOW DAY CLICK HANDLER
                 els.snowDayCheck.onclick = async () => {
                     const isSnow = els.snowDayCheck.checked;
-                    // Must be no school to be snow
                     if (!els.noSchoolCheck.checked) { alert("Enable No School first."); els.snowDayCheck.checked = false; return; }
-                    
-                    try {
-                        await setDoc(doc(db, "noSchoolDays", dateKey), { type: isSnow ? 'snow' : 'standard' });
-                        await loadData();
-                    } catch(e) { alert("Error: " + e.message); }
+                    try { await setDoc(doc(db, "noSchoolDays", dateKey), { type: isSnow ? 'snow' : 'standard' }); await loadData(); } catch(e) { alert("Error: " + e.message); }
                 };
 
                 els.ssocCheck.onclick = async () => {
@@ -1230,17 +1220,13 @@
                 };
             } else { els.dayViewEditControls.style.display = 'none'; }
 
-            // Filter the Day View List too
             const dayEvents = getFilteredEvents().filter(e => e.date === dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
-
-            // UPDATED SORTING: Period First, Then Time
             const pO = { 'preflight': 1, 'morning': 2, 'm5': 3, 'other': 4 };
             
             dayEvents.sort((a, b) => {
                 if (a.name === "Special Schedule of Calls") return -1;
                 if (b.name === "Special Schedule of Calls") return 1;
-
                 if (isNoSchool) {
                     const tA = a.startTime || "99:99";
                     const tB = b.startTime || "99:99";
@@ -1249,7 +1235,6 @@
                     const pA = pO[a.period] || 99;
                     const pB = pO[b.period] || 99;
                     if (pA !== pB) return pA - pB;
-                    
                     const tA = a.startTime || "99:99";
                     const tB = b.startTime || "99:99";
                     return tA.localeCompare(tB);
@@ -1266,7 +1251,6 @@
                     let locationHtml = evt.location ? `<p><strong>Location:</strong> ${evt.location}</p>` : "";
                     
                     let nameDisplay = evt.name + (evt.tentative ? "*" : "");
-                    
                     if (evt.designator === 'Birthday') { timeDisplay = ""; locationHtml = ""; attendanceStr = `Class Year: ${attendanceStr}`; } 
                     else if (evt.designator === 'Holiday') { timeDisplay = ""; locationHtml = ""; attendanceStr = "All"; }
 
@@ -1339,7 +1323,6 @@
                 editingEventId = eventToEdit.id;
                 els.modalTitle.innerText = "Edit Event"; els.saveEventBtn.innerText = "Update Event";
                 els.eventDate.value = eventToEdit.date; els.eventName.value = eventToEdit.name; els.eventLocation.value = eventToEdit.location || ''; els.eventNotes.value = eventToEdit.notes || '';
-                
                 els.recurrenceCheck.disabled = true; els.recurrenceCheck.parentElement.style.opacity = "0.5"; els.recurrenceCheck.parentElement.title = "Cannot change recurrence on edit.";
 
                 if (eventToEdit.hasOwnProperty('mandatory')) els.mandatoryCheck.checked = eventToEdit.mandatory;

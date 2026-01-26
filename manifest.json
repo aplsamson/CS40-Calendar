@@ -1,0 +1,20 @@
+{
+  "name": "CS40 Calendar",
+  "short_name": "CS40",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#003087",
+  "icons": [
+    {
+      "src": "https://www.aviatorgear.com/images/product/large/39950.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://www.aviatorgear.com/images/product/large/39950.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
