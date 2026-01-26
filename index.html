@@ -573,39 +573,60 @@
         const recurDayChecks = document.querySelectorAll('.recur-day-check');
 
         // --- PWA INSTALLATION LOGIC ---
+        
+        // Detect if the app is already running in standalone mode (installed)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+        // Detect if device is iOS
+        const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+
         // 1. Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('Service Worker Registered', reg))
-                    .catch((err) => console.log('Service Worker Not Registered', err));
+                    .then((reg) => console.log('Service Worker Registered'))
+                    .catch((err) => console.log('Service Worker Error', err));
             });
         }
 
-        // 2. Capture Install Prompt
+        // 2. Handle Android/Chrome (Automatic Prompt)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Only show button if on mobile width
-            if (window.innerWidth <= 768) {
+            // Show button if on mobile and not already installed
+            if (window.innerWidth <= 768 && !isStandalone) {
                 els.installContainer.style.display = 'flex';
+                els.installAppBtn.innerText = "📲 Install App";
             }
         });
 
-        // 3. Handle Button Click
+        // 3. Handle iOS (Manual Instructions)
+        if (isIos && !isStandalone && window.innerWidth <= 768) {
+            // Show button immediately for iOS since the event above won't fire
+            els.installContainer.style.display = 'flex';
+            els.installAppBtn.innerText = "📲 Install on iPhone";
+        }
+
+        // 4. Handle Button Click
         els.installAppBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
+                // Android/Chrome Path
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                console.log('User response to install prompt:', outcome);
                 deferredPrompt = null;
                 els.installContainer.style.display = 'none';
+            } else if (isIos) {
+                // iOS Path - Show instructions
+                alert("To install on iPhone:\n\n1. Tap the Share button (square with arrow) at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.");
             }
         });
 
-        // 4. Handle resize (if user rotates phone or resizes browser)
+        // 5. Handle resize
         window.addEventListener('resize', () => {
-            if (deferredPrompt && window.innerWidth <= 768) {
+            if (isStandalone) return; // Don't show if already installed
+
+            // Show if we have a prompt waiting OR if it's iOS
+            if ((deferredPrompt || isIos) && window.innerWidth <= 768) {
                 els.installContainer.style.display = 'flex';
             } else {
                 els.installContainer.style.display = 'none';
