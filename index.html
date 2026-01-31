@@ -17,35 +17,10 @@
         
         /* TOP LAYOUT */
         .top-container { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; max-width: 1400px; margin-bottom: 30px; min-height: 110px; }
-        
-        /* Header Styling */
-        .main-header { 
-            display: flex; align-items: center; background-color: white; padding: 15px 30px; 
-            border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10; 
-            transition: all 0.3s;
-            position: relative;
-        }
-        
-        .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; flex-shrink: 0; }
+        .main-header { display: flex; align-items: center; background-color: white; padding: 15px 30px; border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10; }
+        .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
         .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
-        /* Mobile Settings Button - Explicitly styled */
-        .mobile-settings-btn-main {
-            display: none; /* Hidden on Desktop */
-            background: #f0f0f0; 
-            border: 1px solid #ccc; 
-            border-radius: 50%;
-            cursor: pointer; 
-            margin-left: 10px; 
-            padding: 8px;
-            width: 44px;
-            height: 44px;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0; /* Prevents button from being squashed */
-        }
-        .mobile-settings-btn-main svg { width: 24px; height: 24px; fill: #333; }
-
         .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
         
         .header-actions-right { 
@@ -62,7 +37,7 @@
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
             display: none; background: white; padding: 15px 25px; border-radius: 20px; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-            z-index: 30;
+            z-index: 30; /* Higher z-index to ensure it sits on top */
             min-width: 200px;
             flex-direction: row; gap: 25px; 
         }
@@ -167,26 +142,9 @@
             /* HIDE BUTTONS ON MOBILE */
             .header-actions-left, .header-actions-right { display: none !important; }
             
-            /* ADJUST HEADER FOR MOBILE */
-            .main-header { 
-                width: 98%; 
-                padding: 10px 15px; 
-                justify-content: space-between; /* Spreads content */
-            }
-            
-            .header-logo { height: 3.5rem; margin-right: 10px; }
-            
-            /* Truncate Title if needed */
-            .header-title { 
-                font-size: 1.5rem; 
-                white-space: nowrap; 
-                overflow: hidden; 
-                text-overflow: ellipsis; 
-                flex: 1; /* Takes available space */
-            }
-            
-            /* SHOW SETTINGS BUTTON */
-            .mobile-settings-btn-main { display: flex; }
+            /* Smaller Title on Mobile */
+            .header-title { font-size: 1.5rem; } 
+            .header-logo { height: 3rem; }
         }
 
         /* MODALS */
@@ -264,9 +222,6 @@
         }
         .settings-btn-toggle.inactive { background-color: #f0f0f0; color: #333; }
         .settings-btn-toggle.active { background-color: #d9534f; color: white; border: none; }
-        
-        /* MOBILE MENU MODAL SPECIFIC */
-        #mobileMenuModal .modal-content { max-width: 350px; text-align: center; padding-top: 40px; }
         
         /* EVENT LIST MODAL SPECIFIC */
         #eventsListModal .modal-content { width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
@@ -353,49 +308,6 @@
             <button id="changePinBtn" class="settings-btn-toggle inactive" style="background-color: #6c757d; color: white; border: none;">Change PIN</button>
             <button id="exportDataBtn" class="settings-btn-toggle inactive" style="background-color: #17a2b8; color: white; border: none;">Export All Data</button>
             <button id="cleanupDataBtn" class="settings-btn-toggle inactive" style="background-color: #dc3545; color: white; border: none;">Data Cleanup</button>
-        </div>
-    </div>
-    
-    <div id="mobileMenuModal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-modal-btn" id="closeMobileMenuBtn">&times;</button>
-            <h3 class="modal-title">Options</h3>
-            <button id="mobileEventListBtn" class="settings-btn-toggle inactive" style="background-color: #003087; color: white; border: none;">See Events List</button>
-            <button id="mobileNotificationsBtn" class="settings-btn-toggle inactive" style="background-color: #28a745; color: white; border: none; margin-top: 10px;">🔔 Enable Notifications</button>
-        </div>
-    </div>
-    
-    <div id="notificationConfigModal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-modal-btn" id="closeNotifConfigBtn">&times;</button>
-            <h3 class="modal-title">Notification Settings</h3>
-            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #555;">Receive alerts at 6 PM for tomorrow's events.</p>
-            
-            <div class="filter-section" style="border-bottom: none;">
-                <h4 style="margin-bottom: 8px;">Notify me for:</h4>
-                <div class="designator-list">
-                     <label><input type="checkbox" value="Birthday" class="notif-type-check"> Birthday</label>
-                    <label><input type="checkbox" value="Briefing" class="notif-type-check"> Briefing</label>
-                    <label><input type="checkbox" value="Checkpoint" class="notif-type-check"> Checkpoint</label>
-                    <label><input type="checkbox" value="Fitness Test" class="notif-type-check"> Fitness Test</label>
-                    <label><input type="checkbox" value="Formation" class="notif-type-check"> Formation</label>
-                    <label><input type="checkbox" value="Holiday" class="notif-type-check"> Holiday</label>
-                    <label><input type="checkbox" value="IC Competition" class="notif-type-check"> IC Competition</label>
-                    <label><input type="checkbox" value="Morale Event" class="notif-type-check"> Morale Event</label>
-                    <label><input type="checkbox" value="Squadron Time" class="notif-type-check"> Squadron Time</label>
-                    <label><input type="checkbox" value="Tasker" class="notif-type-check"> Tasker</label>
-                    <label><input type="checkbox" value="Training" class="notif-type-check"> Training</label>
-                    <label><input type="checkbox" value="Other" class="notif-type-check"> Other</label>
-                </div>
-            </div>
-            
-            <div class="modal-footer" style="margin-top: 10px;">
-                <button id="selectAllNotifBtn" class="btn-select-all">Select All</button>
-                <div class="modal-actions">
-                    <button id="cancelNotifBtn" class="btn-cancel">Cancel</button>
-                    <button id="saveNotifBtn" class="btn-save">Enable Notifications</button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -500,16 +412,10 @@
             <button id="weekViewBtn" class="header-btn week-view-btn">See Monthly View</button>
             <button id="viewLegendBtn" class="header-btn legend-btn" style="margin-top: 10px;">View Legend</button>
         </div>
-        
         <div class="main-header">
             <img src="https://www.aviatorgear.com/images/product/large/39950.jpg" alt="CS40 Logo" class="header-logo" id="mainHeaderLogo" title="Double Click to Toggle Clean Mode">
             <h1 class="header-title" id="mainHeaderTitle">CS40 Calendar</h1>
-            
-            <button id="mainMobileSettingsBtn" class="mobile-settings-btn-main" title="Settings">
-                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-            </button>
         </div>
-        
         <div class="header-actions-right" id="headerActionsRight">
             <button id="filterBtn" class="filter-btn" title="Filter Events">
                 <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
@@ -599,7 +505,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, setDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
@@ -613,13 +518,6 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        let messaging;
-        try {
-            messaging = getMessaging(app);
-        } catch (e) {
-            console.log("Firebase Messaging not supported in this environment (likely a restricted iframe/Teams).");
-        }
 
         // Global Variables
         let currentDate = new Date();
@@ -665,22 +563,24 @@
          'changePinBtn', 'exportDataBtn', 'cleanupDataBtn',
          'changePinModal', 'currentPinInput', 'newPinInput', 'verifyPinInput', 'cancelChangePinBtn', 'saveNewPinBtn',
          'cleanupModal', 'cleanupTimeframe', 'cleanupPinInput', 'cancelCleanupBtn', 'executeCleanupBtn',
-         'installContainer', 'installAppBtn',
-         'mainMobileSettingsBtn', 'mobileMenuModal', 'closeMobileMenuBtn', 'mobileEventListBtn', 'mobileNotificationsBtn',
-         'notificationConfigModal', 'closeNotifConfigBtn', 'cancelNotifBtn', 'saveNotifBtn', 'selectAllNotifBtn'
+         'installContainer', 'installAppBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
         const filterClassChecks = document.querySelectorAll('.filter-class-check');
         const filterDesignatorChecks = document.querySelectorAll('.filter-designator-check');
         const listFilterChecks = document.querySelectorAll('.list-filter-check');
-        const notifTypeChecks = document.querySelectorAll('.notif-type-check');
         const recurDayChecks = document.querySelectorAll('.recur-day-check');
 
         // --- PWA INSTALLATION LOGIC ---
+        
+        // Detect if the app is already running in standalone mode (installed)
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+        // Detect if device is iOS
         const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
 
+        // 1. Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
@@ -689,35 +589,48 @@
             });
         }
 
+        // 2. Handle Android/Chrome (Automatic Prompt)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            // Show button if on mobile and not already installed
             if (window.innerWidth <= 768 && !isStandalone) {
                 els.installContainer.style.display = 'flex';
                 els.installAppBtn.innerText = "Install App";
             }
         });
 
+        // 3. Handle iOS (Manual Instructions)
         if (isIos && !isStandalone && window.innerWidth <= 768) {
+            // Show button immediately for iOS since the event above won't fire
             els.installContainer.style.display = 'flex';
             els.installAppBtn.innerText = "Install on iPhone";
         }
 
+        // 4. Handle Button Click
         els.installAppBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
+                // Android/Chrome Path
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 deferredPrompt = null;
                 els.installContainer.style.display = 'none';
             } else if (isIos) {
+                // iOS Path - Show instructions
                 alert("To install on iPhone:\n\n1. In Teams: tap the three dots at the top right of this screen and tap 'Open in browser'\n2. Tap the the three dots and then the share button (square with arrow) at the bottom of Safari.\n3. Scroll down and tap 'Add to Home Screen'.");
             }
         });
 
+        // 5. Handle resize
         window.addEventListener('resize', () => {
-            if (isStandalone) return; 
-            if ((deferredPrompt || isIos) && window.innerWidth <= 768) { els.installContainer.style.display = 'flex'; } 
-            else { els.installContainer.style.display = 'none'; }
+            if (isStandalone) return; // Don't show if already installed
+
+            // Show if we have a prompt waiting OR if it's iOS
+            if ((deferredPrompt || isIos) && window.innerWidth <= 768) {
+                els.installContainer.style.display = 'flex';
+            } else {
+                els.installContainer.style.display = 'none';
+            }
             updateViewBasedOnScreen();
         });
 
@@ -1108,82 +1021,6 @@
         filterDesignatorChecks.forEach(cb => cb.addEventListener('change', updateFilters));
         els.filterMandatoryCheck.addEventListener('change', updateFilters);
 
-        // --- MOBILE MENU HANDLERS ---
-        els.mainMobileSettingsBtn.onclick = () => { els.mobileMenuModal.style.display = 'flex'; };
-        els.closeMobileMenuBtn.onclick = () => { els.mobileMenuModal.style.display = 'none'; };
-        els.mobileEventListBtn.onclick = () => { els.mobileMenuModal.style.display = 'none'; els.eventsListModal.style.display = 'flex'; };
-        els.mobileNotificationsBtn.onclick = () => { els.mobileMenuModal.style.display = 'none'; els.notificationConfigModal.style.display = 'flex'; };
-
-        // --- NOTIFICATION CONFIG HANDLERS ---
-        els.closeNotifConfigBtn.onclick = () => { els.notificationConfigModal.style.display = 'none'; };
-        els.cancelNotifBtn.onclick = () => { els.notificationConfigModal.style.display = 'none'; };
-        els.selectAllNotifBtn.onclick = () => { notifTypeChecks.forEach(cb => cb.checked = true); };
-        
-        els.saveNotifBtn.onclick = async () => {
-            if (!messaging) {
-                alert("Notifications are not supported in this browser or environment (Teams tab/iframe). Please open in a standard browser.");
-                return;
-            }
-
-            if (!('serviceWorker' in navigator)) {
-                alert("Service Workers are not supported in this browser.");
-                return;
-            }
-
-            // 1. Check Permissions
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                alert("Permission not granted for notifications.");
-                return;
-            }
-
-            // 2. Get Token (FIXED: Explicitly use sw.js registration)
-            els.saveNotifBtn.innerText = "Enabling...";
-            try {
-                // Ensure service worker is registered
-                const registration = await navigator.serviceWorker.register('./sw.js');
-                
-                // Pass registration to getToken
-                // *** IMPORTANT: REPLACE 'YOUR_VAPID_KEY_HERE' WITH YOUR ACTUAL KEY ***
-                const token = await getToken(messaging, { 
-                    vapidKey: 'BP8BnN1XKdiNS3n37781aOxZUDwExmQIGhnmBWw5KS3Zmk1h0oXQMMhoI3XVT97CBkgx8zvRrqlRhncYU2UaDtM',
-                    serviceWorkerRegistration: registration
-                });
-
-                if (token) {
-                    // 3. Save to Firestore
-                    const selectedTypes = [];
-                    notifTypeChecks.forEach(cb => { if(cb.checked) selectedTypes.push(cb.value); });
-                    
-                    if (selectedTypes.length === 0) {
-                        alert("Please select at least one event type.");
-                        els.saveNotifBtn.innerText = "Enable Notifications";
-                        return;
-                    }
-
-                    // Write to collection "notificationTokens"
-                    // docID = token (ensures 1 doc per device)
-                    await setDoc(doc(db, "notificationTokens", token), {
-                        token: token,
-                        timing: "night_before", 
-                        types: selectedTypes,
-                        updatedAt: new Date()
-                    });
-
-                    alert("Notifications Enabled! You will be notified at 6 PM the night before events.");
-                    els.notificationConfigModal.style.display = 'none';
-                } else {
-                    alert("No registration token available. Request permission to generate one.");
-                }
-            } catch (err) {
-                console.error("An error occurred while retrieving token. ", err);
-                alert("Error enabling notifications: " + err.message);
-            } finally {
-                els.saveNotifBtn.innerText = "Enable Notifications";
-            }
-        };
-
-
         // --- SETTINGS ---
         els.settingsBtn.addEventListener('click', () => {
             if (isSettingsUnlocked) { els.settingsModal.style.display = 'flex'; updateSettingsUI(); } 
@@ -1402,9 +1239,7 @@
                 els.silverCheck.onclick = async () => {
                     try { if (els.silverCheck.checked) { await setDoc(doc(db, "silverDays", dateKey), { active: true }); silverDays.push(dateKey); } else { await deleteDoc(doc(db, "silverDays", dateKey)); silverDays = silverDays.filter(d => d !== dateKey); } renderCalendar(); } catch(e) { alert("Error: " + e.message); }
                 };
-            } else { 
-                els.dayViewEditControls.style.display = 'none'; 
-            }
+            } else { els.dayViewEditControls.style.display = 'none'; }
 
             const dayEvents = getFilteredEvents().filter(e => e.date === dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
@@ -1583,8 +1418,6 @@
             if (e.target == els.settingsModal) els.settingsModal.style.display = "none"; 
             if (e.target == els.changePinModal) els.changePinModal.style.display = "none";
             if (e.target == els.cleanupModal) els.cleanupModal.style.display = "none";
-            if (e.target == els.mobileMenuModal) els.mobileMenuModal.style.display = "none";
-            if (e.target == els.notificationConfigModal) els.notificationConfigModal.style.display = "none";
         };
         
         els.mainHeaderLogo.addEventListener('dblclick', () => { 
