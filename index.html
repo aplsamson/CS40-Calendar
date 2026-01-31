@@ -146,7 +146,7 @@
             .grid-header-cell { display: none; } 
             .calendar-container { border-right: 2px solid black; } 
             
-            /* HIDE DESKTOP BUTTONS ON MOBILE */
+            /* HIDE BUTTONS ON MOBILE */
             .header-actions-left, .header-actions-right { display: none !important; }
             
             /* Smaller Title on Mobile */
@@ -596,6 +596,7 @@
         let currentView = 'week'; 
         let editingEventId = null;
         let deferredPrompt; 
+        let swRegistration = null; // Store registration globally
         
         const filterState = { 
             classes: [], 
@@ -635,7 +636,6 @@
         const filterDesignatorChecks = document.querySelectorAll('.filter-designator-check');
         const listFilterChecks = document.querySelectorAll('.list-filter-check');
         const recurDayChecks = document.querySelectorAll('.recur-day-check');
-        // NEW CHECKS
         const notifTypeChecks = document.querySelectorAll('.notif-type-check');
 
         // --- PWA INSTALLATION LOGIC (Refined) ---
@@ -646,7 +646,10 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('Service Worker Registered'))
+                    .then((reg) => {
+                        console.log('Service Worker Registered');
+                        swRegistration = reg; // Capture registration for messaging
+                    })
                     .catch((err) => console.log('Service Worker Error', err));
             });
         }
@@ -672,7 +675,7 @@
                 deferredPrompt = null; 
                 els.installContainer.style.display = 'none'; 
             } else if (isIos) { 
-                alert("To install on iPhone:\n\n1. In Teams: tap the three dots at the top right of this screen and tap 'Open in browser'\n2. Tap the the three dots and then the share button (square with arrow) at the bottom of Safari.\n3. Scroll down and tap 'Add to Home Screen'."); 
+                alert("To install on iPhone:\n\n1. In Safari, tap the Share button (square with arrow).\n2. Scroll down and tap 'Add to Home Screen'."); 
             }
         });
 
@@ -757,7 +760,16 @@
             els.saveNotifBtn.innerText = "Registering...";
             
             try {
-                const currentToken = await getToken(messaging, { vapidKey: vapidKey });
+                // Ensure we have registration
+                if (!swRegistration) {
+                    swRegistration = await navigator.serviceWorker.getRegistration();
+                }
+
+                const currentToken = await getToken(messaging, { 
+                    vapidKey: vapidKey,
+                    serviceWorkerRegistration: swRegistration
+                });
+
                 if (currentToken) {
                     // 3. Save to Firestore
                     await addDoc(collection(db, "notificationTokens"), {
