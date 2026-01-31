@@ -6,9 +6,11 @@
     <title>CS40 Calendar</title>
     <link rel="icon" href="https://www.aviatorgear.com/images/product/large/39950.jpg" type="image/jpeg">
     <link rel="manifest" href="manifest.json">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="CS40 Calendar">
+    <meta name="theme-color" content="#ffffff">
     
     <style>
         html { font-size: 14px; }
@@ -21,7 +23,7 @@
         .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
         .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
-        /* MOBILE SETTINGS BUTTON (Always in header, hidden on desktop) */
+        /* MOBILE SETTINGS BUTTON */
         .mobile-settings-btn { 
             display: none; 
             background: none; border: none; cursor: pointer; padding: 0; margin-left: 15px;
@@ -596,7 +598,6 @@
         let currentView = 'week'; 
         let editingEventId = null;
         let deferredPrompt; 
-        let swRegistration = null; // Store registration globally
         
         const filterState = { 
             classes: [], 
@@ -646,10 +647,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => {
-                        console.log('Service Worker Registered');
-                        swRegistration = reg; // Capture registration for messaging
-                    })
+                    .then((reg) => console.log('Service Worker Registered'))
                     .catch((err) => console.log('Service Worker Error', err));
             });
         }
@@ -760,14 +758,12 @@
             els.saveNotifBtn.innerText = "Registering...";
             
             try {
-                // Ensure we have registration
-                if (!swRegistration) {
-                    swRegistration = await navigator.serviceWorker.getRegistration();
-                }
+                // Ensure we have a service worker registration
+                const registration = await navigator.serviceWorker.ready;
 
                 const currentToken = await getToken(messaging, { 
                     vapidKey: vapidKey,
-                    serviceWorkerRegistration: swRegistration
+                    serviceWorkerRegistration: registration 
                 });
 
                 if (currentToken) {
