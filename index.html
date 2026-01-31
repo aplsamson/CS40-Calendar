@@ -266,6 +266,13 @@
         .edit-btn { background-color: #f0ad4e; color: white; }
         .delete-btn { background-color: #ff4d4f; color: white; }
         .delete-series-btn { background-color: #a94442; color: white; }
+        
+        /* NEW: MOBILE SETTINGS ICON */
+        .mobile-settings-btn {
+            background: none; border: none; cursor: pointer; padding: 5px; margin-left: auto;
+            display: none; /* Shown via JS when in Day View */
+        }
+        .mobile-settings-btn svg { width: 28px; height: 28px; fill: #666; }
 
         /* EDIT CONTROLS */
         .day-view-edit-controls { display: none; flex-direction: column; gap: 5px; align-items: flex-start; margin-right: 35px; }
@@ -308,6 +315,51 @@
             <button id="changePinBtn" class="settings-btn-toggle inactive" style="background-color: #6c757d; color: white; border: none;">Change PIN</button>
             <button id="exportDataBtn" class="settings-btn-toggle inactive" style="background-color: #17a2b8; color: white; border: none;">Export All Data</button>
             <button id="cleanupDataBtn" class="settings-btn-toggle inactive" style="background-color: #dc3545; color: white; border: none;">Data Cleanup</button>
+        </div>
+    </div>
+    
+    <div id="mobileSettingsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 350px;">
+            <button class="close-modal-btn" id="closeMobileSettingsBtn">&times;</button>
+            <h3 class="modal-title">Menu</h3>
+            <button id="mobileEnableNotifBtn" class="settings-btn-toggle inactive" style="background-color: #ffc107; color: #333; border: none;">Enable Notifications</button>
+            <button id="mobileEventListBtn" class="settings-btn-toggle inactive" style="background-color: #003087; color: white; border: none;">Events List</button>
+        </div>
+    </div>
+
+    <div id="notificationPrefsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 class="modal-title">Notification Settings</h3>
+            
+            <p style="font-size:0.9rem; color:#666; margin-bottom:10px;">Select event types to be notified for:</p>
+            <div class="designator-list">
+                <label><input type="checkbox" value="Briefing" class="notif-type-check"> Briefing</label>
+                <label><input type="checkbox" value="Checkpoint" class="notif-type-check"> Checkpoint</label>
+                <label><input type="checkbox" value="Fitness Test" class="notif-type-check"> Fitness Test</label>
+                <label><input type="checkbox" value="Formation" class="notif-type-check"> Formation</label>
+                <label><input type="checkbox" value="Holiday" class="notif-type-check"> Holiday</label>
+                <label><input type="checkbox" value="IC Competition" class="notif-type-check"> IC Competition</label>
+                <label><input type="checkbox" value="Morale Event" class="notif-type-check"> Morale Event</label>
+                <label><input type="checkbox" value="Squadron Time" class="notif-type-check"> Squadron Time</label>
+                <label><input type="checkbox" value="Tasker" class="notif-type-check"> Tasker</label>
+                <label><input type="checkbox" value="Training" class="notif-type-check"> Training</label>
+                <label><input type="checkbox" value="Other" class="notif-type-check"> Other</label>
+            </div>
+
+            <p style="font-size:0.9rem; color:#666; margin:15px 0 10px;">When should we notify you?</p>
+            <div class="form-group">
+                <label style="font-weight:normal; cursor:pointer;">
+                    <input type="radio" name="notifTime" value="night_before" checked> Night Before (6:00 PM)
+                </label>
+                <label style="font-weight:normal; cursor:pointer; margin-top:8px;">
+                    <input type="radio" name="notifTime" value="2_hours"> 2 Hours Before
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button id="cancelNotifBtn" class="btn-cancel">Cancel</button>
+                <button id="saveNotifBtn" class="btn-save" style="background-color:#28a745;">Enable Notifications</button>
+            </div>
         </div>
     </div>
 
@@ -486,6 +538,9 @@
             <button class="close-modal-btn" id="closeDayView">&times;</button>
             <div class="day-view-header">
                 <div class="header-text-group"><div class="day-view-date" id="dayViewDateDisplay">Date</div><div class="day-view-type" id="dayViewTypeDisplay">M1</div></div>
+                <button id="mobileSettingsBtn" class="mobile-settings-btn" style="display:block;">
+                    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                </button>
                 <div class="day-view-edit-controls" id="dayViewEditControls">
                     <button id="dayViewAddBtn" class="day-view-add-btn-rect">+ Add Event</button>
                     <div id="standardControls">
@@ -505,6 +560,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, setDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // NEW: Import Messaging
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
@@ -518,6 +575,8 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        // NEW: Init Messaging
+        const messaging = getMessaging(app);
 
         // Global Variables
         let currentDate = new Date();
@@ -534,7 +593,7 @@
         let currentDayViewKey = null; 
         let currentView = 'week'; 
         let editingEventId = null;
-        let deferredPrompt; // For PWA install
+        let deferredPrompt; 
         
         const filterState = { 
             classes: [], 
@@ -563,7 +622,10 @@
          'changePinBtn', 'exportDataBtn', 'cleanupDataBtn',
          'changePinModal', 'currentPinInput', 'newPinInput', 'verifyPinInput', 'cancelChangePinBtn', 'saveNewPinBtn',
          'cleanupModal', 'cleanupTimeframe', 'cleanupPinInput', 'cancelCleanupBtn', 'executeCleanupBtn',
-         'installContainer', 'installAppBtn'
+         'installContainer', 'installAppBtn',
+         // NEW ELEMENTS
+         'mobileSettingsBtn', 'mobileSettingsModal', 'closeMobileSettingsBtn', 'mobileEnableNotifBtn', 'mobileEventListBtn',
+         'notificationPrefsModal', 'cancelNotifBtn', 'saveNotifBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -571,16 +633,13 @@
         const filterDesignatorChecks = document.querySelectorAll('.filter-designator-check');
         const listFilterChecks = document.querySelectorAll('.list-filter-check');
         const recurDayChecks = document.querySelectorAll('.recur-day-check');
+        // NEW CHECKS
+        const notifTypeChecks = document.querySelectorAll('.notif-type-check');
 
         // --- PWA INSTALLATION LOGIC ---
-        
-        // Detect if the app is already running in standalone mode (installed)
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-        // Detect if device is iOS
         const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-        // 1. Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
@@ -588,52 +647,22 @@
                     .catch((err) => console.log('Service Worker Error', err));
             });
         }
-
-        // 2. Handle Android/Chrome (Automatic Prompt)
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            // Show button if on mobile and not already installed
-            if (window.innerWidth <= 768 && !isStandalone) {
-                els.installContainer.style.display = 'flex';
-                els.installAppBtn.innerText = "Install App";
-            }
+            e.preventDefault(); deferredPrompt = e;
+            if (window.innerWidth <= 768 && !isStandalone) { els.installContainer.style.display = 'flex'; els.installAppBtn.innerText = "Install App"; }
         });
+        if (isIos && !isStandalone && window.innerWidth <= 768) { els.installContainer.style.display = 'flex'; els.installAppBtn.innerText = "Install on iPhone"; }
 
-        // 3. Handle iOS (Manual Instructions)
-        if (isIos && !isStandalone && window.innerWidth <= 768) {
-            // Show button immediately for iOS since the event above won't fire
-            els.installContainer.style.display = 'flex';
-            els.installAppBtn.innerText = "Install on iPhone";
-        }
-
-        // 4. Handle Button Click
         els.installAppBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                // Android/Chrome Path
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                els.installContainer.style.display = 'none';
-            } else if (isIos) {
-                // iOS Path - Show instructions
-                alert("To install on iPhone:\n\n1. In Teams: tap the three dots at the top right of this screen and tap 'Open in browser'\n2. Tap the the three dots and then the share button (square with arrow) at the bottom of Safari.\n3. Scroll down and tap 'Add to Home Screen'.");
-            }
+            if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null; els.installContainer.style.display = 'none'; } 
+            else if (isIos) { alert("To install on iPhone:\n\n1. In Teams: tap the three dots at the top right of this screen and tap 'Open in browser'\n2. Tap the the three dots and then the share button (square with arrow) at the bottom of Safari.\n3. Scroll down and tap 'Add to Home Screen'."); }
         });
 
-        // 5. Handle resize
         window.addEventListener('resize', () => {
-            if (isStandalone) return; // Don't show if already installed
-
-            // Show if we have a prompt waiting OR if it's iOS
-            if ((deferredPrompt || isIos) && window.innerWidth <= 768) {
-                els.installContainer.style.display = 'flex';
-            } else {
-                els.installContainer.style.display = 'none';
-            }
+            if (isStandalone) return;
+            if ((deferredPrompt || isIos) && window.innerWidth <= 768) { els.installContainer.style.display = 'flex'; } else { els.installContainer.style.display = 'none'; }
             updateViewBasedOnScreen();
         });
-
 
         // --- FIREBASE DATA ---
         async function loadData() {
@@ -668,6 +697,76 @@
             } catch (e) { console.error(e); alert("Data load error: " + e.message); }
         }
         
+        // --- NEW: MOBILE SETTINGS LOGIC ---
+        els.mobileSettingsBtn.onclick = () => { 
+            els.dayViewModal.style.display = 'none'; 
+            els.mobileSettingsModal.style.display = 'flex'; 
+        };
+        els.closeMobileSettingsBtn.onclick = () => els.mobileSettingsModal.style.display = 'none';
+        
+        els.mobileEventListBtn.onclick = () => {
+             els.mobileSettingsModal.style.display = 'none';
+             els.eventsListModal.style.display = 'flex';
+        };
+
+        els.mobileEnableNotifBtn.onclick = () => {
+            els.mobileSettingsModal.style.display = 'none';
+            els.notificationPrefsModal.style.display = 'flex';
+        };
+
+        els.cancelNotifBtn.onclick = () => els.notificationPrefsModal.style.display = 'none';
+
+        // --- NEW: NOTIFICATION SAVING LOGIC ---
+        els.saveNotifBtn.onclick = async () => {
+            if (!("Notification" in window)) { alert("This browser does not support notifications."); return; }
+
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") { alert("Permission denied. Enable notifications in settings."); return; }
+
+            // 1. Gather Preferences
+            const selectedTypes = [];
+            notifTypeChecks.forEach(cb => { if(cb.checked) selectedTypes.push(cb.value); });
+            const timeChoice = document.querySelector('input[name="notifTime"]:checked').value; // 'night_before' or '2_hours'
+            
+            // 2. Get VAPID Token
+            // VAPID KEY GOES HERE 
+            const vapidKey = "BP8BnN1XKdiNS3n37781aOxZUDwExmQIGhnmBWw5KS3Zmk1h0oXQMMhoI3XVT97CBkgx8zvRrqlRhncYU2UaDtM"; 
+
+            els.saveNotifBtn.innerText = "Registering...";
+            
+            try {
+                const currentToken = await getToken(messaging, { vapidKey: vapidKey });
+                if (currentToken) {
+                    // 3. Save to Firestore
+                    await addDoc(collection(db, "notificationTokens"), {
+                        token: currentToken,
+                        types: selectedTypes,
+                        timing: timeChoice,
+                        registeredAt: new Date(),
+                        device: navigator.userAgent
+                    });
+                    
+                    alert("Notifications Enabled! You will receive alerts for the selected events.");
+                    els.notificationPrefsModal.style.display = 'none';
+                } else {
+                    alert("Failed to get token. Try again.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error: " + err.message);
+            } finally {
+                els.saveNotifBtn.innerText = "Enable Notifications";
+            }
+        };
+
+        // Handle foreground messages
+        onMessage(messaging, (payload) => {
+            console.log('Message received. ', payload);
+            const notificationTitle = payload.notification.title;
+            const notificationOptions = { body: payload.notification.body, icon: 'https://www.aviatorgear.com/images/product/large/39950.jpg' };
+            new Notification(notificationTitle, notificationOptions);
+        });
+
         // --- SCHEDULE CALCULATION ALGORITHM ---
         function generateSchedule() {
             generatedSchedule = {};
@@ -1196,8 +1295,12 @@
             els.dayViewTypeDisplay.innerText = dayType ? `Day: ${dayType}` : "No M/T Type";
             els.dayViewList.innerHTML = ""; 
 
+            // -- NEW LOGIC FOR MOBILE SETTINGS BUTTON --
             if (isEditMode) {
+                // In Edit Mode: Show controls, Hide settings cog
                 els.dayViewEditControls.style.display = 'flex';
+                els.mobileSettingsBtn.style.display = 'none'; 
+                
                 const d = new Date(dateKey + 'T12:00:00');
                 if (d.getDay() === 6) { 
                     els.standardControls.style.display = 'none'; els.saturdayControls.style.display = 'flex'; els.silverCheck.checked = silverDays.includes(dateKey);
@@ -1239,7 +1342,16 @@
                 els.silverCheck.onclick = async () => {
                     try { if (els.silverCheck.checked) { await setDoc(doc(db, "silverDays", dateKey), { active: true }); silverDays.push(dateKey); } else { await deleteDoc(doc(db, "silverDays", dateKey)); silverDays = silverDays.filter(d => d !== dateKey); } renderCalendar(); } catch(e) { alert("Error: " + e.message); }
                 };
-            } else { els.dayViewEditControls.style.display = 'none'; }
+            } else { 
+                // In View Mode: Hide edit controls
+                els.dayViewEditControls.style.display = 'none';
+                // Show Settings Cog ONLY on mobile width
+                if (window.innerWidth <= 768) {
+                    els.mobileSettingsBtn.style.display = 'block';
+                } else {
+                    els.mobileSettingsBtn.style.display = 'none';
+                }
+            }
 
             const dayEvents = getFilteredEvents().filter(e => e.date === dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);
@@ -1418,6 +1530,8 @@
             if (e.target == els.settingsModal) els.settingsModal.style.display = "none"; 
             if (e.target == els.changePinModal) els.changePinModal.style.display = "none";
             if (e.target == els.cleanupModal) els.cleanupModal.style.display = "none";
+            if (e.target == els.mobileSettingsModal) els.mobileSettingsModal.style.display = "none";
+            if (e.target == els.notificationPrefsModal) els.notificationPrefsModal.style.display = "none";
         };
         
         els.mainHeaderLogo.addEventListener('dblclick', () => { 
