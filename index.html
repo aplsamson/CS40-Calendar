@@ -23,7 +23,7 @@
         .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
         .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
-        /* MOBILE SETTINGS BUTTON */
+        /* MOBILE SETTINGS BUTTON (Always in header, hidden on desktop) */
         .mobile-settings-btn { 
             display: none; 
             background: none; border: none; cursor: pointer; padding: 0; margin-left: 15px;
@@ -598,6 +598,7 @@
         let currentView = 'week'; 
         let editingEventId = null;
         let deferredPrompt; 
+        let swRegistration = null; // Store registration globally
         
         const filterState = { 
             classes: [], 
@@ -647,7 +648,10 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('Service Worker Registered'))
+                    .then((reg) => {
+                        console.log('Service Worker Registered');
+                        swRegistration = reg; // Capture registration for messaging
+                    })
                     .catch((err) => console.log('Service Worker Error', err));
             });
         }
@@ -759,7 +763,16 @@
             
             try {
                 // Ensure we have a service worker registration
-                const registration = await navigator.serviceWorker.ready;
+                let registration = await navigator.serviceWorker.ready;
+
+                // Fallback: If for some reason ready hangs or is empty (rare but possible in dev), try getting it manually
+                if (!registration) {
+                    registration = await navigator.serviceWorker.getRegistration();
+                }
+
+                if (!registration) {
+                    throw new Error("Service Worker not found. Reload page.");
+                }
 
                 const currentToken = await getToken(messaging, { 
                     vapidKey: vapidKey,

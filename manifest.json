@@ -2,7 +2,7 @@
   "name": "CS40 Calendar",
   "short_name": "CS40",
   "start_url": "./index.html",
-  "display": "standalone",
+  "display": "minimal-ui",
   "background_color": "#ffffff",
   "theme_color": "#003087",
   "icons": [
