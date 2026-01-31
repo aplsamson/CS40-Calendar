@@ -21,6 +21,13 @@
         .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
         .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
+        /* MOBILE SETTINGS BUTTON (Always in header, hidden on desktop) */
+        .mobile-settings-btn { 
+            display: none; 
+            background: none; border: none; cursor: pointer; padding: 0; margin-left: 15px;
+        }
+        .mobile-settings-btn svg { width: 32px; height: 32px; fill: #555; }
+
         .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
         
         .header-actions-right { 
@@ -37,7 +44,7 @@
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
             display: none; background: white; padding: 15px 25px; border-radius: 20px; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-            z-index: 30; /* Higher z-index to ensure it sits on top */
+            z-index: 30; 
             min-width: 200px;
             flex-direction: row; gap: 25px; 
         }
@@ -139,12 +146,15 @@
             .grid-header-cell { display: none; } 
             .calendar-container { border-right: 2px solid black; } 
             
-            /* HIDE BUTTONS ON MOBILE */
+            /* HIDE DESKTOP BUTTONS ON MOBILE */
             .header-actions-left, .header-actions-right { display: none !important; }
             
             /* Smaller Title on Mobile */
             .header-title { font-size: 1.5rem; } 
             .header-logo { height: 3rem; }
+
+            /* SHOW MOBILE SETTINGS BTN */
+            .mobile-settings-btn { display: block; }
         }
 
         /* MODALS */
@@ -266,13 +276,6 @@
         .edit-btn { background-color: #f0ad4e; color: white; }
         .delete-btn { background-color: #ff4d4f; color: white; }
         .delete-series-btn { background-color: #a94442; color: white; }
-        
-        /* NEW: MOBILE SETTINGS ICON */
-        .mobile-settings-btn {
-            background: none; border: none; cursor: pointer; padding: 5px; margin-left: auto;
-            display: none; /* Shown via JS when in Day View */
-        }
-        .mobile-settings-btn svg { width: 28px; height: 28px; fill: #666; }
 
         /* EDIT CONTROLS */
         .day-view-edit-controls { display: none; flex-direction: column; gap: 5px; align-items: flex-start; margin-right: 35px; }
@@ -317,7 +320,7 @@
             <button id="cleanupDataBtn" class="settings-btn-toggle inactive" style="background-color: #dc3545; color: white; border: none;">Data Cleanup</button>
         </div>
     </div>
-    
+
     <div id="mobileSettingsModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 350px;">
             <button class="close-modal-btn" id="closeMobileSettingsBtn">&times;</button>
@@ -467,6 +470,10 @@
         <div class="main-header">
             <img src="https://www.aviatorgear.com/images/product/large/39950.jpg" alt="CS40 Logo" class="header-logo" id="mainHeaderLogo" title="Double Click to Toggle Clean Mode">
             <h1 class="header-title" id="mainHeaderTitle">CS40 Calendar</h1>
+            
+            <button id="mobileSettingsBtn" class="mobile-settings-btn">
+                <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+            </button>
         </div>
         <div class="header-actions-right" id="headerActionsRight">
             <button id="filterBtn" class="filter-btn" title="Filter Events">
@@ -495,7 +502,7 @@
 
     <div id="installContainer" class="install-container">
         <button id="installAppBtn" class="install-btn-main">
-            📲 Install App
+            Install App
         </button>
     </div>
 
@@ -538,9 +545,6 @@
             <button class="close-modal-btn" id="closeDayView">&times;</button>
             <div class="day-view-header">
                 <div class="header-text-group"><div class="day-view-date" id="dayViewDateDisplay">Date</div><div class="day-view-type" id="dayViewTypeDisplay">M1</div></div>
-                <button id="mobileSettingsBtn" class="mobile-settings-btn" style="display:block;">
-                    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-                </button>
                 <div class="day-view-edit-controls" id="dayViewEditControls">
                     <button id="dayViewAddBtn" class="day-view-add-btn-rect">+ Add Event</button>
                     <div id="standardControls">
@@ -560,7 +564,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, setDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        // NEW: Import Messaging
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // --- PASTE YOUR FIREBASE CONFIG HERE ---
@@ -575,7 +578,6 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        // NEW: Init Messaging
         const messaging = getMessaging(app);
 
         // Global Variables
@@ -636,9 +638,10 @@
         // NEW CHECKS
         const notifTypeChecks = document.querySelectorAll('.notif-type-check');
 
-        // --- PWA INSTALLATION LOGIC ---
+        // --- PWA INSTALLATION LOGIC (Refined) ---
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
         const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent);
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -649,18 +652,38 @@
         }
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault(); deferredPrompt = e;
-            if (window.innerWidth <= 768 && !isStandalone) { els.installContainer.style.display = 'flex'; els.installAppBtn.innerText = "Install App"; }
+            // CHECK: must be mobile width, not installed, AND actually be a mobile device
+            if (window.innerWidth <= 768 && !isStandalone && isMobileDevice) { 
+                els.installContainer.style.display = 'flex'; 
+                els.installAppBtn.innerText = "Install App"; 
+            }
         });
-        if (isIos && !isStandalone && window.innerWidth <= 768) { els.installContainer.style.display = 'flex'; els.installAppBtn.innerText = "Install on iPhone"; }
+        
+        // Manual check for iOS
+        if (isIos && !isStandalone && window.innerWidth <= 768) { 
+            els.installContainer.style.display = 'flex'; 
+            els.installAppBtn.innerText = "Install on iPhone"; 
+        }
 
         els.installAppBtn.addEventListener('click', async () => {
-            if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null; els.installContainer.style.display = 'none'; } 
-            else if (isIos) { alert("To install on iPhone:\n\n1. In Teams: tap the three dots at the top right of this screen and tap 'Open in browser'\n2. Tap the the three dots and then the share button (square with arrow) at the bottom of Safari.\n3. Scroll down and tap 'Add to Home Screen'."); }
+            if (deferredPrompt) { 
+                deferredPrompt.prompt(); 
+                const { outcome } = await deferredPrompt.userChoice; 
+                deferredPrompt = null; 
+                els.installContainer.style.display = 'none'; 
+            } else if (isIos) { 
+                alert("To install on iPhone:\n\n1. In Teams: tap the three dots at the top right of this screen and tap 'Open in browser'\n2. Tap the the three dots and then the share button (square with arrow) at the bottom of Safari.\n3. Scroll down and tap 'Add to Home Screen'."); 
+            }
         });
 
         window.addEventListener('resize', () => {
             if (isStandalone) return;
-            if ((deferredPrompt || isIos) && window.innerWidth <= 768) { els.installContainer.style.display = 'flex'; } else { els.installContainer.style.display = 'none'; }
+            // Re-check conditions on resize
+            if ((deferredPrompt || isIos) && window.innerWidth <= 768 && isMobileDevice) { 
+                els.installContainer.style.display = 'flex'; 
+            } else { 
+                els.installContainer.style.display = 'none'; 
+            }
             updateViewBasedOnScreen();
         });
 
@@ -697,9 +720,8 @@
             } catch (e) { console.error(e); alert("Data load error: " + e.message); }
         }
         
-        // --- NEW: MOBILE SETTINGS LOGIC ---
+        // --- MOBILE SETTINGS LOGIC ---
         els.mobileSettingsBtn.onclick = () => { 
-            els.dayViewModal.style.display = 'none'; 
             els.mobileSettingsModal.style.display = 'flex'; 
         };
         els.closeMobileSettingsBtn.onclick = () => els.mobileSettingsModal.style.display = 'none';
@@ -716,7 +738,7 @@
 
         els.cancelNotifBtn.onclick = () => els.notificationPrefsModal.style.display = 'none';
 
-        // --- NEW: NOTIFICATION SAVING LOGIC ---
+        // --- NOTIFICATION SAVING LOGIC ---
         els.saveNotifBtn.onclick = async () => {
             if (!("Notification" in window)) { alert("This browser does not support notifications."); return; }
 
@@ -730,7 +752,7 @@
             
             // 2. Get VAPID Token
             // VAPID KEY GOES HERE 
-            const vapidKey = "BP8BnN1XKdiNS3n37781aOxZUDwExmQIGhnmBWw5KS3Zmk1h0oXQMMhoI3XVT97CBkgx8zvRrqlRhncYU2UaDtM"; 
+            const vapidKey = "YOUR_VAPID_PUBLIC_KEY"; 
 
             els.saveNotifBtn.innerText = "Registering...";
             
@@ -1299,7 +1321,7 @@
             if (isEditMode) {
                 // In Edit Mode: Show controls, Hide settings cog
                 els.dayViewEditControls.style.display = 'flex';
-                els.mobileSettingsBtn.style.display = 'none'; 
+                // els.mobileSettingsBtn.style.display = 'none'; 
                 
                 const d = new Date(dateKey + 'T12:00:00');
                 if (d.getDay() === 6) { 
@@ -1345,12 +1367,7 @@
             } else { 
                 // In View Mode: Hide edit controls
                 els.dayViewEditControls.style.display = 'none';
-                // Show Settings Cog ONLY on mobile width
-                if (window.innerWidth <= 768) {
-                    els.mobileSettingsBtn.style.display = 'block';
-                } else {
-                    els.mobileSettingsBtn.style.display = 'none';
-                }
+                
             }
 
             const dayEvents = getFilteredEvents().filter(e => e.date === dateKey);
