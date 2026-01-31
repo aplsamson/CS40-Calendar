@@ -18,22 +18,33 @@
         /* TOP LAYOUT */
         .top-container { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; max-width: 1400px; margin-bottom: 30px; min-height: 110px; }
         
-        /* Updated Header for Mobile Flex */
+        /* Header Styling */
         .main-header { 
             display: flex; align-items: center; background-color: white; padding: 15px 30px; 
             border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10; 
             transition: all 0.3s;
+            position: relative;
         }
         
-        .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; }
+        .header-logo { height: 5rem; width: auto; margin-right: 20px; cursor: pointer; flex-shrink: 0; }
         .header-title { font-size: 2.5rem; color: #333; font-weight: bold; margin: 0; white-space: nowrap; }
         
-        /* Mobile Settings Button (Hidden on Desktop) */
+        /* Mobile Settings Button - Explicitly styled */
         .mobile-settings-btn-main {
-            display: none;
-            background: none; border: none; cursor: pointer; margin-left: 15px; padding: 5px;
+            display: none; /* Hidden on Desktop */
+            background: #f0f0f0; 
+            border: 1px solid #ccc; 
+            border-radius: 50%;
+            cursor: pointer; 
+            margin-left: 10px; 
+            padding: 8px;
+            width: 44px;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* Prevents button from being squashed */
         }
-        .mobile-settings-btn-main svg { width: 28px; height: 28px; fill: #333; }
+        .mobile-settings-btn-main svg { width: 24px; height: 24px; fill: #333; }
 
         .header-actions-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; z-index: 20; }
         
@@ -156,17 +167,26 @@
             /* HIDE BUTTONS ON MOBILE */
             .header-actions-left, .header-actions-right { display: none !important; }
             
-            /* Adjust Main Header for Mobile */
+            /* ADJUST HEADER FOR MOBILE */
             .main-header { 
-                width: 95%; 
-                padding: 10px 20px; 
-                justify-content: space-between; 
+                width: 98%; 
+                padding: 10px 15px; 
+                justify-content: space-between; /* Spreads content */
             }
-            .header-logo { height: 3rem; margin-right: 10px; }
-            .header-title { font-size: 1.2rem; white-space: normal; text-align: left; }
             
-            /* Show the Mobile Settings Button */
-            .mobile-settings-btn-main { display: block; }
+            .header-logo { height: 3.5rem; margin-right: 10px; }
+            
+            /* Truncate Title if needed */
+            .header-title { 
+                font-size: 1.5rem; 
+                white-space: nowrap; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                flex: 1; /* Takes available space */
+            }
+            
+            /* SHOW SETTINGS BUTTON */
+            .mobile-settings-btn-main { display: flex; }
         }
 
         /* MODALS */
@@ -658,14 +678,9 @@
         const recurDayChecks = document.querySelectorAll('.recur-day-check');
 
         // --- PWA INSTALLATION LOGIC ---
-        
-        // Detect if the app is already running in standalone mode (installed)
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-        // Detect if device is iOS
         const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-        // 1. Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
@@ -674,48 +689,35 @@
             });
         }
 
-        // 2. Handle Android/Chrome (Automatic Prompt)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Show button if on mobile and not already installed
             if (window.innerWidth <= 768 && !isStandalone) {
                 els.installContainer.style.display = 'flex';
                 els.installAppBtn.innerText = "Install App";
             }
         });
 
-        // 3. Handle iOS (Manual Instructions)
         if (isIos && !isStandalone && window.innerWidth <= 768) {
-            // Show button immediately for iOS since the event above won't fire
             els.installContainer.style.display = 'flex';
             els.installAppBtn.innerText = "Install on iPhone";
         }
 
-        // 4. Handle Button Click
         els.installAppBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
-                // Android/Chrome Path
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 deferredPrompt = null;
                 els.installContainer.style.display = 'none';
             } else if (isIos) {
-                // iOS Path - Show instructions
                 alert("To install on iPhone:\n\n1. In Teams: tap the three dots at the top right of this screen and tap 'Open in browser'\n2. Tap the the three dots and then the share button (square with arrow) at the bottom of Safari.\n3. Scroll down and tap 'Add to Home Screen'.");
             }
         });
 
-        // 5. Handle resize
         window.addEventListener('resize', () => {
-            if (isStandalone) return; // Don't show if already installed
-
-            // Show if we have a prompt waiting OR if it's iOS
-            if ((deferredPrompt || isIos) && window.innerWidth <= 768) {
-                els.installContainer.style.display = 'flex';
-            } else {
-                els.installContainer.style.display = 'none';
-            }
+            if (isStandalone) return; 
+            if ((deferredPrompt || isIos) && window.innerWidth <= 768) { els.installContainer.style.display = 'flex'; } 
+            else { els.installContainer.style.display = 'none'; }
             updateViewBasedOnScreen();
         });
 
@@ -1123,6 +1125,11 @@
                 return;
             }
 
+            if (!('serviceWorker' in navigator)) {
+                alert("Service Workers are not supported in this browser.");
+                return;
+            }
+
             // 1. Check Permissions
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
@@ -1130,12 +1137,17 @@
                 return;
             }
 
-            // 2. Get Token
+            // 2. Get Token (FIXED: Explicitly use sw.js registration)
             els.saveNotifBtn.innerText = "Enabling...";
             try {
+                // Ensure service worker is registered
+                const registration = await navigator.serviceWorker.register('./sw.js');
+                
+                // Pass registration to getToken
                 // *** IMPORTANT: REPLACE 'YOUR_VAPID_KEY_HERE' WITH YOUR ACTUAL KEY ***
                 const token = await getToken(messaging, { 
-                    vapidKey: 'BP8BnN1XKdiNS3n37781aOxZUDwExmQIGhnmBWw5KS3Zmk1h0oXQMMhoI3XVT97CBkgx8zvRrqlRhncYU2UaDtM' 
+                    vapidKey: 'BP8BnN1XKdiNS3n37781aOxZUDwExmQIGhnmBWw5KS3Zmk1h0oXQMMhoI3XVT97CBkgx8zvRrqlRhncYU2UaDtM',
+                    serviceWorkerRegistration: registration
                 });
 
                 if (token) {
