@@ -598,7 +598,6 @@
         let currentView = 'week'; 
         let editingEventId = null;
         let deferredPrompt; 
-        let swRegistration = null; // Store registration globally
         
         const filterState = { 
             classes: [], 
@@ -650,7 +649,6 @@
                 navigator.serviceWorker.register('./sw.js')
                     .then((reg) => {
                         console.log('Service Worker Registered');
-                        swRegistration = reg; // Capture registration for messaging
                     })
                     .catch((err) => console.log('Service Worker Error', err));
             });
@@ -756,22 +754,23 @@
             const timeChoice = document.querySelector('input[name="notifTime"]:checked').value; // 'night_before' or '2_hours'
             
             // 2. Get VAPID Token
-            // VAPID KEY GOES HERE 
             const vapidKey = "BP8BnN1XKdiNS3n37781aOxZUDwExmQIGhnmBWw5KS3Zmk1h0oXQMMhoI3XVT97CBkgx8zvRrqlRhncYU2UaDtM"; 
+            if (vapidKey === "YOUR_VAPID_PUBLIC_KEY") {
+                alert("Error: Admin has not configured the VAPID Key in index.html.");
+                return;
+            }
 
             els.saveNotifBtn.innerText = "Registering...";
             
             try {
                 // Ensure we have a service worker registration
-                let registration = await navigator.serviceWorker.ready;
-
-                // Fallback: If for some reason ready hangs or is empty (rare but possible in dev), try getting it manually
+                let registration = await navigator.serviceWorker.getRegistration();
+                
                 if (!registration) {
-                    registration = await navigator.serviceWorker.getRegistration();
-                }
-
-                if (!registration) {
-                    throw new Error("Service Worker not found. Reload page.");
+                    console.log("No active Service Worker found. Registering now...");
+                    registration = await navigator.serviceWorker.register('./sw.js');
+                    // Wait for it to activate
+                    await navigator.serviceWorker.ready;
                 }
 
                 const currentToken = await getToken(messaging, { 
@@ -1338,12 +1337,8 @@
             els.dayViewTypeDisplay.innerText = dayType ? `Day: ${dayType}` : "No M/T Type";
             els.dayViewList.innerHTML = ""; 
 
-            // -- NEW LOGIC FOR MOBILE SETTINGS BUTTON --
             if (isEditMode) {
-                // In Edit Mode: Show controls, Hide settings cog
                 els.dayViewEditControls.style.display = 'flex';
-                // els.mobileSettingsBtn.style.display = 'none'; 
-                
                 const d = new Date(dateKey + 'T12:00:00');
                 if (d.getDay() === 6) { 
                     els.standardControls.style.display = 'none'; els.saturdayControls.style.display = 'flex'; els.silverCheck.checked = silverDays.includes(dateKey);
@@ -1385,11 +1380,7 @@
                 els.silverCheck.onclick = async () => {
                     try { if (els.silverCheck.checked) { await setDoc(doc(db, "silverDays", dateKey), { active: true }); silverDays.push(dateKey); } else { await deleteDoc(doc(db, "silverDays", dateKey)); silverDays = silverDays.filter(d => d !== dateKey); } renderCalendar(); } catch(e) { alert("Error: " + e.message); }
                 };
-            } else { 
-                // In View Mode: Hide edit controls
-                els.dayViewEditControls.style.display = 'none';
-                
-            }
+            } else { els.dayViewEditControls.style.display = 'none'; }
 
             const dayEvents = getFilteredEvents().filter(e => e.date === dateKey);
             const isNoSchool = isWeekendOrNoSchool(dateKey);

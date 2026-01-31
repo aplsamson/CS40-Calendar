@@ -14,7 +14,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// Handle background notifications (when app is closed)
+// Handle background notifications
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   
@@ -27,8 +27,8 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Cache Logic
-const CACHE_NAME = 'cs40-calendar-v3';
+// Cache Logic - Bumped to v5
+const CACHE_NAME = 'cs40-calendar-v5';
 const urlsToCache = [
   './index.html',
   './manifest.json',
