@@ -32,6 +32,27 @@
 
         .action-buttons-stack { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
         
+        /* MOBILE SETTINGS ICON */
+        .mobile-settings-icon {
+            display: none; /* Hidden on Desktop */
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 25;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            align-items: center;
+            justify-content: center;
+            color: #555;
+        }
+        
         /* LEGEND */
         .clean-mode-legend { 
             position: absolute; right: 0; top: 50%; transform: translateY(-50%); 
@@ -142,6 +163,9 @@
             /* HIDE BUTTONS ON MOBILE */
             .header-actions-left, .header-actions-right { display: none !important; }
             
+            /* SHOW MOBILE SETTINGS ICON */
+            .mobile-settings-icon { display: flex; }
+
             /* Smaller Title on Mobile */
             .header-title { font-size: 1.5rem; } 
             .header-logo { height: 3rem; }
@@ -457,6 +481,8 @@
     </div>
 
     <div class="top-container">
+        <button id="mobileSettingsBtn" class="mobile-settings-icon">⚙️</button>
+        
         <div class="header-actions-left" id="headerActionsLeft">
             <button id="weekViewBtn" class="header-btn week-view-btn">See Monthly View</button>
             <button id="viewLegendBtn" class="header-btn legend-btn" style="margin-top: 10px;">View Legend</button>
@@ -613,7 +639,8 @@
          'changePinModal', 'currentPinInput', 'newPinInput', 'verifyPinInput', 'cancelChangePinBtn', 'saveNewPinBtn',
          'cleanupModal', 'cleanupTimeframe', 'cleanupPinInput', 'cancelCleanupBtn', 'executeCleanupBtn',
          'installContainer', 'installAppBtn',
-         'publicExportModal', 'closePublicExportBtn', 'exportAppleBtn', 'exportGoogleBtn'
+         'publicExportModal', 'closePublicExportBtn', 'exportAppleBtn', 'exportGoogleBtn',
+         'mobileSettingsBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -864,6 +891,7 @@
 
         function renderMonthView() {
             els.mainHeaderTitle.innerText = "CS40 Calendar";
+            els.mainHeaderTitle.style.color = "#333";
             const todayStr = getFormattedDate(new Date());
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -904,6 +932,7 @@
             
             const options = { month: 'short', day: 'numeric' };
             els.mainHeaderTitle.innerText = `Week of ${startOfWeek.toLocaleDateString('en-US', options)} - ${endOfWeek.toLocaleDateString('en-US', { ...options, year: 'numeric'})}`;
+            els.mainHeaderTitle.style.color = "#333";
             
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             els.monthYear.innerText = `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getFullYear()}`;
@@ -931,10 +960,22 @@
             const dateKey = getFormattedDate(currentDate);
             const dayNum = currentDate.getDate();
             const mainOptions = { month: 'long', day: 'numeric', year: 'numeric' };
+            
+            // Set Header Date Text
             els.mainHeaderTitle.innerText = currentDate.toLocaleDateString('en-US', mainOptions);
+            
+            // Check if displayed date is Today
+            const todayStr = getFormattedDate(new Date());
+            if (dateKey === todayStr) {
+                els.mainHeaderTitle.style.color = "#ff0000"; // Bright Red for Today
+            } else {
+                els.mainHeaderTitle.style.color = "#333"; // Normal Color otherwise
+            }
+
             const options = { weekday: 'long' };
             els.monthYear.innerText = currentDate.toLocaleDateString('en-US', options);
-            els.monthYear.style.color = "#ff0000"; // Set Current Day text to Red
+            els.monthYear.style.color = ""; // Reset to normal color (removed red override)
+
             els.calendarGrid.innerHTML = "";
             const c = document.createElement('div'); 
             c.className = 'day-cell week-view';
@@ -1090,6 +1131,18 @@
             // No longer check PIN here. Open public menu.
             els.settingsModal.style.display = 'flex';
             updateSettingsUI();
+            
+            // Ensure Admin Button is visible on Desktop if not unlocked/locked logic applies standardly
+            if(!isSettingsUnlocked) els.adminLoginBtn.style.display = 'block';
+        });
+
+        // Mobile Settings Button Handler
+        els.mobileSettingsBtn.addEventListener('click', () => {
+             els.settingsModal.style.display = 'flex';
+             updateSettingsUI();
+             
+             // Hide Admin Login Button for Mobile Public Users
+             els.adminLoginBtn.style.display = 'none';
         });
 
         // Admin Login Button in Public Menu
@@ -1125,6 +1178,7 @@
                 els.adminLoginBtn.style.display = 'none';
                 els.adminControlsContainer.classList.add('visible');
             } else {
+                // Default state - will be overridden by mobile click handler if needed
                 els.adminLoginBtn.style.display = 'block';
                 els.adminControlsContainer.classList.remove('visible');
             }
