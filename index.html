@@ -222,6 +222,14 @@
         }
         .settings-btn-toggle.inactive { background-color: #f0f0f0; color: #333; }
         .settings-btn-toggle.active { background-color: #d9534f; color: white; border: none; }
+
+        .admin-controls-container {
+            display: none;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        .admin-controls-container.visible { display: block; }
         
         /* EVENT LIST MODAL SPECIFIC */
         #eventsListModal .modal-content { width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
@@ -300,14 +308,55 @@
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal-btn" id="closeSettingsBtn">&times;</button>
-            <h3 class="modal-title">Settings</h3>
-            <button id="toggleEditModeBtn" class="settings-btn-toggle inactive">Enter Edit Mode</button>
+            <h3 class="modal-title">Menu</h3>
+            
             <button id="openEventListBtn" class="settings-btn-toggle inactive" style="background-color: #003087; color: white; border: none;">See Events List</button>
-            <button id="setSemesterBtn" class="settings-btn-toggle inactive" style="background-color: #28a745; color: white; border: none;">Set Semester Start / End</button>
-            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
-            <button id="changePinBtn" class="settings-btn-toggle inactive" style="background-color: #6c757d; color: white; border: none;">Change PIN</button>
-            <button id="exportDataBtn" class="settings-btn-toggle inactive" style="background-color: #17a2b8; color: white; border: none;">Export All Data</button>
-            <button id="cleanupDataBtn" class="settings-btn-toggle inactive" style="background-color: #dc3545; color: white; border: none;">Data Cleanup</button>
+            <button id="publicExportBtn" class="settings-btn-toggle inactive" style="background-color: #28a745; color: white; border: none;">Export Calendar</button>
+            <button id="adminLoginBtn" class="settings-btn-toggle inactive" style="background-color: #6c757d; color: white; border: none;">Admin Settings</button>
+            
+            <div id="adminControlsContainer" class="admin-controls-container">
+                <h4 style="margin-bottom:15px; color:#d9534f; text-transform:uppercase; font-size:0.9rem;">Admin Controls</h4>
+                <button id="toggleEditModeBtn" class="settings-btn-toggle inactive">Enter Edit Mode</button>
+                <button id="setSemesterBtn" class="settings-btn-toggle inactive" style="background-color: #17a2b8; color: white; border: none;">Set Semester Start / End</button>
+                <button id="exportDataBtn" class="settings-btn-toggle inactive" style="background-color: #6610f2; color: white; border: none;">Export All Data (Backup)</button>
+                <button id="cleanupDataBtn" class="settings-btn-toggle inactive" style="background-color: #dc3545; color: white; border: none;">Data Cleanup</button>
+                <button id="changePinBtn" class="settings-btn-toggle inactive" style="background-color: #343a40; color: white; border: none;">Change PIN</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="publicExportModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <button class="close-modal-btn" id="closePublicExportBtn">&times;</button>
+            <h3 class="modal-title">Export Calendar</h3>
+            <p style="color:#666; margin-bottom:15px; font-size:0.9rem;">Select event types to include in your download.</p>
+            
+            <div class="filter-section" style="border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:15px;">
+                <h4 style="color:#003087; margin-bottom:10px;">Select Events:</h4>
+                <div class="designator-list">
+                    <label><input type="checkbox" value="Birthday" class="export-filter-check" checked> Birthday</label>
+                    <label><input type="checkbox" value="Briefing" class="export-filter-check" checked> Briefing</label>
+                    <label><input type="checkbox" value="Checkpoint" class="export-filter-check" checked> Checkpoint</label>
+                    <label><input type="checkbox" value="Fitness Test" class="export-filter-check" checked> Fitness Test</label>
+                    <label><input type="checkbox" value="Formation" class="export-filter-check" checked> Formation</label>
+                    <label><input type="checkbox" value="Holiday" class="export-filter-check" checked> Holiday</label>
+                    <label><input type="checkbox" value="IC Competition" class="export-filter-check" checked> IC Competition</label>
+                    <label><input type="checkbox" value="Morale Event" class="export-filter-check" checked> Morale Event</label>
+                    <label><input type="checkbox" value="Squadron Time" class="export-filter-check" checked> Squadron Time</label>
+                    <label><input type="checkbox" value="Tasker" class="export-filter-check" checked> Tasker</label>
+                    <label><input type="checkbox" value="Training" class="export-filter-check" checked> Training</label>
+                    <label><input type="checkbox" value="Other" class="export-filter-check" checked> Other</label>
+                </div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button id="exportAppleBtn" class="settings-btn-toggle" style="background-color: #333; color: white; border: none; margin-bottom:0;">
+                    Download for Apple
+                </button>
+                <button id="exportGoogleBtn" class="settings-btn-toggle" style="background-color: #4285F4; color: white; border: none; margin-bottom:0;">
+                    Download for Google / Outlook
+                </button>
+            </div>
         </div>
     </div>
 
@@ -436,7 +485,7 @@
             <div class="legend-column">
                 <div class="legend-item"><div class="legend-dot" style="background: #C0C0C0;"></div> 29ers</div>
                 <div class="legend-item"><div class="legend-dot" style="background: black;"></div> All</div>
-                <div class="legend-item"><div class="legend-symbol">*</div> Tentative</div>
+                <div class="legend-item"><div class="legend-dot" style="background: #fd7e14;"></div> Non-Mandatory</div>
             </div>
         </div>
     </div>
@@ -527,7 +576,7 @@
         let semesterSettings = { start: null, end: null };
         let generatedSchedule = {}; 
         
-        let currentPin = "2640"; 
+        let currentPin = null; // No longer hardcoded.
 
         let isEditMode = false;
         let isSettingsUnlocked = false; 
@@ -557,13 +606,14 @@
          'recurrenceCheck', 'recurrenceOptions', 'recurrenceFreq', 'recurrenceDaysGroup', 'recurrenceEndDate',
          'locationGroup', 'classGroup', 'footerToggles', 'recurrenceContainer', 'classAllLabel', 'classLabel',
          'classCheckboxGroup', 'birthdayClassSelect',
-         'settingsModal', 'closeSettingsBtn', 'toggleEditModeBtn', 'openEventListBtn', 'setSemesterBtn',
+         'settingsModal', 'closeSettingsBtn', 'toggleEditModeBtn', 'openEventListBtn', 'setSemesterBtn', 'adminLoginBtn', 'adminControlsContainer', 'publicExportBtn',
          'eventsListModal', 'closeEventsListBtn', 'generateListBtn', 'eventsListResults',
          'semesterModal', 'semesterStart', 'semesterEnd', 'cancelSemesterBtn', 'saveSemesterBtn',
          'changePinBtn', 'exportDataBtn', 'cleanupDataBtn',
          'changePinModal', 'currentPinInput', 'newPinInput', 'verifyPinInput', 'cancelChangePinBtn', 'saveNewPinBtn',
          'cleanupModal', 'cleanupTimeframe', 'cleanupPinInput', 'cancelCleanupBtn', 'executeCleanupBtn',
-         'installContainer', 'installAppBtn'
+         'installContainer', 'installAppBtn',
+         'publicExportModal', 'closePublicExportBtn', 'exportAppleBtn', 'exportGoogleBtn'
         ].forEach(id => els[id] = document.getElementById(id));
         
         const classChecks = document.querySelectorAll('.class-check');
@@ -571,6 +621,7 @@
         const filterDesignatorChecks = document.querySelectorAll('.filter-designator-check');
         const listFilterChecks = document.querySelectorAll('.list-filter-check');
         const recurDayChecks = document.querySelectorAll('.recur-day-check');
+        const exportFilterChecks = document.querySelectorAll('.export-filter-check');
 
         // --- PWA INSTALLATION LOGIC ---
         
@@ -640,8 +691,11 @@
             try {
                 try {
                     const pinDoc = await getDoc(doc(db, "settings", "security"));
-                    if (pinDoc.exists()) { currentPin = pinDoc.data().pin; } 
-                    else { await setDoc(doc(db, "settings", "security"), { pin: "2640" }); currentPin = "2640"; }
+                    if (pinDoc.exists()) { 
+                        currentPin = pinDoc.data().pin; 
+                    } else {
+                        console.log("No security PIN set in database. Admin locked.");
+                    }
                 } catch(e) { console.log("Pin fetch check: ", e); }
 
                 const eventsSnapshot = await getDocs(collection(db, "events"));
@@ -815,6 +869,7 @@
             const month = currentDate.getMonth();
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             els.monthYear.innerText = `${monthNames[month]} ${year}`;
+            els.monthYear.style.color = ""; // Reset color
             els.calendarGrid.innerHTML = "";
             ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(day => {
                 const h = document.createElement('div'); h.className = 'grid-header-cell'; h.innerText = day; els.calendarGrid.appendChild(h);
@@ -852,6 +907,7 @@
             
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             els.monthYear.innerText = `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getFullYear()}`;
+            els.monthYear.style.color = ""; // Reset color
 
             els.calendarGrid.innerHTML = "";
             ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(dayName => {
@@ -878,6 +934,7 @@
             els.mainHeaderTitle.innerText = currentDate.toLocaleDateString('en-US', mainOptions);
             const options = { weekday: 'long' };
             els.monthYear.innerText = currentDate.toLocaleDateString('en-US', options);
+            els.monthYear.style.color = "#ff0000"; // Set Current Day text to Red
             els.calendarGrid.innerHTML = "";
             const c = document.createElement('div'); 
             c.className = 'day-cell week-view';
@@ -980,7 +1037,14 @@
                 chip.innerHTML = content;
             }
 
-            if (evt.tentative) {
+            // Logic for Chip Color
+            if (evt.hasOwnProperty('mandatory') && !evt.mandatory) {
+                // Non-Mandatory is Orange
+                chip.style.backgroundColor = "#fd7e14"; 
+                chip.style.color = "white";
+                chip.style.border = "none";
+            } else if (evt.tentative) {
+                // Keep tentative style if mandatory but tentative (though legend removed *)
                 chip.style.backgroundColor = "white"; chip.style.color = "black";
                 if (!evt.classes || evt.classes.length === 0 || evt.classes.length === 4) { chip.style.border = "2px solid black"; } 
                 else if (evt.classes.length === 1) { chip.style.border = "2px solid " + getChipColor(evt.classes[0]); } 
@@ -1021,26 +1085,178 @@
         filterDesignatorChecks.forEach(cb => cb.addEventListener('change', updateFilters));
         els.filterMandatoryCheck.addEventListener('change', updateFilters);
 
-        // --- SETTINGS ---
+        // --- SETTINGS (UPDATED) ---
         els.settingsBtn.addEventListener('click', () => {
-            if (isSettingsUnlocked) { els.settingsModal.style.display = 'flex'; updateSettingsUI(); } 
-            else { els.pinInput.value = ""; els.pinModal.style.display = 'flex'; els.pinInput.focus(); }
+            // No longer check PIN here. Open public menu.
+            els.settingsModal.style.display = 'flex';
+            updateSettingsUI();
         });
+
+        // Admin Login Button in Public Menu
+        els.adminLoginBtn.onclick = () => {
+             els.settingsModal.style.display = 'none'; // Temporarily hide main settings
+             els.pinInput.value = ""; 
+             els.pinModal.style.display = 'flex'; 
+             els.pinInput.focus();
+        };
+
         function checkPin() {
-            if (els.pinInput.value === currentPin) { 
+            if (currentPin && els.pinInput.value === currentPin) { 
                 isSettingsUnlocked = true; 
                 els.pinModal.style.display = 'none'; 
-                els.settingsModal.style.display = 'flex'; 
+                els.settingsModal.style.display = 'flex'; // Re-open settings
                 updateSettingsUI(); 
             } 
             else { alert("Incorrect PIN."); els.pinInput.value = ""; els.pinInput.focus(); }
         }
         els.submitPinBtn.onclick = checkPin;
-        els.cancelPinBtn.onclick = () => els.pinModal.style.display = 'none';
+        els.cancelPinBtn.onclick = () => {
+            els.pinModal.style.display = 'none';
+            els.settingsModal.style.display = 'flex'; // Go back to public settings
+        };
         els.pinInput.onkeypress = (e) => { if(e.key === 'Enter') checkPin(); };
         els.closeSettingsBtn.onclick = () => els.settingsModal.style.display = 'none';
         
         els.toggleEditModeBtn.addEventListener('click', () => { isEditMode = !isEditMode; updateEditModeUI(); updateSettingsUI(); });
+
+        function updateSettingsUI() {
+            // Update Admin Panel Visibility
+            if (isSettingsUnlocked) {
+                els.adminLoginBtn.style.display = 'none';
+                els.adminControlsContainer.classList.add('visible');
+            } else {
+                els.adminLoginBtn.style.display = 'block';
+                els.adminControlsContainer.classList.remove('visible');
+            }
+
+            // Update Edit Mode Button Text
+            if (isEditMode) { els.toggleEditModeBtn.innerText = "Exit Edit Mode"; els.toggleEditModeBtn.classList.remove('inactive'); els.toggleEditModeBtn.classList.add('active'); } 
+            else { els.toggleEditModeBtn.innerText = "Enter Edit Mode"; els.toggleEditModeBtn.classList.remove('active'); els.toggleEditModeBtn.classList.add('inactive'); }
+        }
+
+        // --- PUBLIC EXPORT CALENDAR ---
+        els.publicExportBtn.onclick = () => {
+             els.settingsModal.style.display = 'none';
+             els.publicExportModal.style.display = 'flex';
+        };
+        els.closePublicExportBtn.onclick = () => els.publicExportModal.style.display = 'none';
+
+        function generateExport(format) {
+             const selectedTypes = [];
+             exportFilterChecks.forEach(cb => { if (cb.checked) selectedTypes.push(cb.value); });
+             
+             if(selectedTypes.length === 0) { alert("Please select at least one event type."); return; }
+             
+             const exportEvents = events.filter(e => selectedTypes.includes(e.designator));
+             
+             if (exportEvents.length === 0) { alert("No events found with selected types."); return; }
+
+             let icsContent = "";
+             
+             if (format === 'vcs') {
+                 // vCalendar 1.0 (VCS)
+                 icsContent = "BEGIN:VCALENDAR\nVERSION:1.0\nPRODID:-//CS40 Calendar//EN\n";
+                 exportEvents.forEach(evt => {
+                     // Safety checks for corrupt data
+                     if (!evt.date || typeof evt.date !== 'string') return;
+                     
+                     let desc = "";
+                     if (evt.notes && typeof evt.notes === 'string') {
+                         desc = evt.notes.replace(/\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,');
+                     }
+                     let summary = evt.name || "Event";
+                     
+                     let startTimeSafe = (evt.startTime && typeof evt.startTime === 'string') ? evt.startTime.replace(':','') + '00' : '000000';
+                     let endTimeSafe = (evt.endTime && typeof evt.endTime === 'string') ? evt.endTime.replace(':','') + '00' : '235900';
+
+                     let dtStart = evt.date.replace(/-/g, '') + 'T' + startTimeSafe;
+                     let dtEnd = evt.date.replace(/-/g, '') + 'T' + endTimeSafe;
+                     
+                     icsContent += "BEGIN:VEVENT\n";
+                     icsContent += `SUMMARY:${summary}\n`;
+                     icsContent += `DTSTART:${dtStart}\n`;
+                     icsContent += `DTEND:${dtEnd}\n`;
+                     if (desc) icsContent += `DESCRIPTION:${desc}\n`;
+                     if (evt.location) icsContent += `LOCATION:${evt.location}\n`;
+                     icsContent += "END:VEVENT\n";
+                 });
+                 icsContent += "END:VCALENDAR";
+                 downloadFile(icsContent, "cs40_calendar.vcs", "text/x-vcalendar");
+             } 
+             else {
+                 // iCalendar 2.0 (ICS) - Apple
+                 icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//CS40 Calendar//EN\nCALSCALE:GREGORIAN\n";
+                 exportEvents.forEach(evt => {
+                     // Safety check
+                     if (!evt.date || typeof evt.date !== 'string') return;
+                     
+                     const uid = evt.id;
+                     const dateStr = evt.date.replace(/-/g, '');
+                     let dtStart = `${dateStr}`;
+                     let dtEnd = `${dateStr}`;
+                     let allDay = true;
+
+                     if (evt.startTime && typeof evt.startTime === 'string' && evt.startTime.trim() !== "") {
+                         allDay = false;
+                         dtStart += `T${evt.startTime.replace(':','')}00`;
+                         if (evt.endTime && typeof evt.endTime === 'string' && evt.endTime.trim() !== "") {
+                            dtEnd += `T${evt.endTime.replace(':','')}00`;
+                         } else {
+                            // Default to +1 hour if no end time
+                            let parts = evt.startTime.split(':');
+                            if (parts.length >= 2) {
+                                let h = parseInt(parts[0]) + 1;
+                                let m = parts[1];
+                                if (h >= 24) { h = 23; m = '59'; } // Clamp to end of day
+                                dtEnd += `T${String(h).padStart(2,'0')}${m}00`;
+                            } else {
+                                dtEnd += `T235900`;
+                            }
+                         }
+                     } else {
+                         const nextDay = new Date(evt.date);
+                         nextDay.setDate(nextDay.getDate() + 1);
+                         const y = nextDay.getFullYear();
+                         const m = String(nextDay.getMonth() + 1).padStart(2, '0');
+                         const d = String(nextDay.getDate()).padStart(2, '0');
+                         dtEnd = `${y}${m}${d}`;
+                     }
+
+                     icsContent += "BEGIN:VEVENT\n";
+                     icsContent += `UID:${uid}\n`;
+                     icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z\n`;
+                     if (allDay) {
+                         icsContent += `DTSTART;VALUE=DATE:${dtStart}\n`;
+                         icsContent += `DTEND;VALUE=DATE:${dtEnd}\n`;
+                     } else {
+                         icsContent += `DTSTART:${dtStart}\n`;
+                         icsContent += `DTEND:${dtEnd}\n`;
+                     }
+                     icsContent += `SUMMARY:${evt.name}\n`;
+                     if (evt.location) icsContent += `LOCATION:${evt.location}\n`;
+                     if (evt.notes) icsContent += `DESCRIPTION:${evt.notes.replace(/\n/g, '\\n')}\n`;
+                     icsContent += "END:VEVENT\n";
+                 });
+                 icsContent += "END:VCALENDAR";
+                 downloadFile(icsContent, "cs40_calendar.ics", "text/calendar");
+             }
+        }
+
+        function downloadFile(content, fileName, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        els.exportAppleBtn.onclick = () => generateExport('ics');
+        els.exportGoogleBtn.onclick = () => generateExport('vcs');
+
 
         // SEMESTER MODAL
         els.setSemesterBtn.onclick = () => {
@@ -1091,7 +1307,7 @@
             } catch (e) { alert("Error updating PIN: " + e.message); }
         };
 
-        // --- EXPORT DATA LOGIC ---
+        // --- EXPORT DATA LOGIC (ADMIN BACKUP) ---
         els.exportDataBtn.onclick = () => {
             const exportObj = {
                 exportedAt: new Date().toISOString(),
@@ -1178,11 +1394,6 @@
                 els.eventsListResults.appendChild(item);
             });
         };
-
-        function updateSettingsUI() {
-            if (isEditMode) { els.toggleEditModeBtn.innerText = "Exit Edit Mode"; els.toggleEditModeBtn.classList.remove('inactive'); els.toggleEditModeBtn.classList.add('active'); } 
-            else { els.toggleEditModeBtn.innerText = "Enter Edit Mode"; els.toggleEditModeBtn.classList.remove('active'); els.toggleEditModeBtn.classList.add('inactive'); }
-        }
 
         function updateEditModeUI() {
             if (isEditMode) { els.headerActionsRight.classList.add('edit-active'); els.addEventBtn.style.display = 'block'; } 
@@ -1418,6 +1629,7 @@
             if (e.target == els.settingsModal) els.settingsModal.style.display = "none"; 
             if (e.target == els.changePinModal) els.changePinModal.style.display = "none";
             if (e.target == els.cleanupModal) els.cleanupModal.style.display = "none";
+            if (e.target == els.publicExportModal) els.publicExportModal.style.display = "none";
         };
         
         els.mainHeaderLogo.addEventListener('dblclick', () => { 
